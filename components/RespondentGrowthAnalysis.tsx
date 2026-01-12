@@ -731,8 +731,7 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
       )}
 
       {/* 分析結果の表示 */}
-      <>
-          {/* ランクサマリーカード */}
+      {/* ランクサマリーカード */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
         <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200">
           <div className="flex items-center gap-3 mb-3">
