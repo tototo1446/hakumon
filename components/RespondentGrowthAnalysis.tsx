@@ -89,14 +89,34 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
     return attributeQuestions;
   }, [surveys]);
 
-  // 回答データから属性情報を抽出
-  const extractAttributeValue = (response: SurveyResponse, questionId: string): string | null => {
+  // 回答データから属性情報を抽出（ラベルも含めて取得）
+  const extractAttributeValue = (response: SurveyResponse, questionId: string, questionType?: string): string | null => {
     const answer = response.answers.find(a => a.questionId === questionId);
     if (!answer) return null;
     
+    // アンケートから質問情報を取得
+    const question = surveys
+      .flatMap(s => s.questions)
+      .find(q => q.id === questionId);
+    
     if (Array.isArray(answer.value)) {
+      // チェックボックスの場合、ラベルに変換
+      if (question && question.options) {
+        const labels = answer.value.map(val => {
+          const option = question.options?.find(opt => opt.value === val);
+          return option ? option.label : val;
+        });
+        return labels.join(', ');
+      }
       return answer.value.join(', ');
     }
+    
+    // ラジオボタンやランクの場合、ラベルに変換
+    if ((answer.type === 'radio' || answer.type === 'rank') && question && question.options) {
+      const option = question.options.find(opt => opt.value === answer.value);
+      return option ? option.label : (answer.value as string) || null;
+    }
+    
     return answer.value || null;
   };
 
@@ -110,23 +130,29 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
         const questionInfo = identifyAttributeQuestions[attributeKey];
         if (!questionInfo) continue;
         
-        const attributeValue = extractAttributeValue(response, questionInfo.questionId);
-        if (!attributeValue || attributeValue !== filterValue) {
+        const attributeValue = extractAttributeValue(response, questionInfo.questionId, questionInfo.type);
+        if (!attributeValue) {
+          return false; // 属性値が存在しない場合は除外
+        }
+        
+        // 完全一致または部分一致をチェック（複数選択の場合に対応）
+        const attributeValues = attributeValue.split(',').map(v => v.trim());
+        if (!attributeValues.includes(filterValue)) {
           return false; // フィルタに一致しない場合は除外
         }
       }
       return true; // すべてのフィルタに一致
     });
-  }, [attributeFilters, identifyAttributeQuestions]);
+  }, [attributeFilters, identifyAttributeQuestions, surveys]);
 
-  // 各属性の選択肢を取得
+  // 各属性の選択肢を取得（ラベル形式で取得）
   const getAttributeOptions = (attributeKey: string): string[] => {
     const questionInfo = identifyAttributeQuestions[attributeKey];
     if (!questionInfo) return [];
     
     const values = new Set<string>();
     orgResponses.forEach(response => {
-      const value = extractAttributeValue(response, questionInfo.questionId);
+      const value = extractAttributeValue(response, questionInfo.questionId, questionInfo.type);
       if (value) {
         // 複数選択の場合は分割
         if (value.includes(',')) {
@@ -136,6 +162,17 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
         }
       }
     });
+    
+    // 質問に選択肢が定義されている場合は、それを使用して順序を保持
+    const question = surveys
+      .flatMap(s => s.questions)
+      .find(q => q.id === questionInfo.questionId);
+    
+    if (question && question.options) {
+      const optionLabels = question.options.map(opt => opt.label);
+      // データに存在する選択肢のみを順序付きで返す
+      return optionLabels.filter(label => values.has(label));
+    }
     
     return Array.from(values).sort();
   };
@@ -544,23 +581,38 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
         {/* フィルタサマリー */}
         {(startDate || endDate || attributeFilters.department || attributeFilters.position) && (
           <div className="border-t border-slate-200 pt-3">
-            <p className="text-xs text-slate-600">
-              表示中のデータ: 
-              {startDate && endDate && (
-                <span className="font-medium text-slate-800 ml-1">
-                  {startDate.replace('-', '年').replace(/(\d{4})年(\d{2})/, '$1年$2月')} ～ {endDate.replace('-', '年').replace(/(\d{4})年(\d{2})/, '$1年$2月')}
-                </span>
-              )}
-              {(attributeFilters.department || attributeFilters.position) && (
-                <span className="font-medium text-slate-800 ml-1">
-                  {attributeFilters.department && ` | ${identifyAttributeQuestions.department?.title}: ${attributeFilters.department}`}
-                  {attributeFilters.position && ` | ${identifyAttributeQuestions.position?.title}: ${attributeFilters.position}`}
-                </span>
-              )}
-              <span className="ml-2 text-slate-500">
-                ({filteredResponses.length}件の回答データ)
-              </span>
-            </p>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div className="text-xs text-slate-600">
+                <p className="font-medium mb-1">適用中のフィルタ:</p>
+                <ul className="list-disc list-inside space-y-1">
+                  {startDate && endDate && (
+                    <li>
+                      期間: {startDate.replace('-', '/')} ～ {endDate.replace('-', '/')}
+                    </li>
+                  )}
+                  {attributeFilters.department && identifyAttributeQuestions.department && (
+                    <li>
+                      {identifyAttributeQuestions.department.title}: {attributeFilters.department}
+                    </li>
+                  )}
+                  {attributeFilters.position && identifyAttributeQuestions.position && (
+                    <li>
+                      {identifyAttributeQuestions.position.title}: {attributeFilters.position}
+                    </li>
+                  )}
+                </ul>
+              </div>
+              <div className="text-xs text-slate-600">
+                <p className="font-medium">
+                  表示中の回答数: <span className="text-indigo-600 font-bold">{filteredResponses.length}</span>件
+                  {orgResponses.length !== filteredResponses.length && (
+                    <span className="text-slate-400 ml-1">
+                      (全{orgResponses.length}件中)
+                    </span>
+                  )}
+                </p>
+              </div>
+            </div>
           </div>
         )}
       </div>
