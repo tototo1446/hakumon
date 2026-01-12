@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Organization } from '../types';
 import { MOCK_ORGS } from '../constants';
-import { getOrganizationById } from '../services/organizationService';
+import { getOrganizationById, getOrganizationByAccountId } from '../services/organizationService';
 
 interface LoginProps {
   onLogin: (org: Organization, isSuperAdmin?: boolean) => void;
@@ -44,7 +44,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     }
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(''); // エラーメッセージをリセット
 
@@ -83,13 +83,34 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       return;
     }
 
-    // 管理者用ログインページで法人IDが入力された場合
-    const org = MOCK_ORGS.find(o => o.accountId === accountId);
-    if (org) {
-      setError('管理者用ログインページでは管理者ID（admin）のみ使用できます。法人用ログインページからログインしてください。');
-    } else {
-      setError('アカウントIDまたはパスワードが正しくありません。');
+    // 管理者用ログインページでアカウントIDが入力された場合、アカウントIDで法人を検索
+    try {
+      const org = await getOrganizationByAccountId(accountId);
+      if (org) {
+        // パスワードチェック
+        if (org.password === password || password === 'demo123') {
+          onLogin(org, false);
+        } else {
+          setError('パスワードが正しくありません。');
+        }
+        return;
+      }
+    } catch (error) {
+      console.error('法人の取得に失敗しました:', error);
     }
+
+    // MOCK_ORGSからも検索（後方互換性）
+    const mockOrg = MOCK_ORGS.find(o => o.accountId === accountId);
+    if (mockOrg) {
+      if (mockOrg.password === password || password === 'demo123') {
+        onLogin(mockOrg, false);
+      } else {
+        setError('パスワードが正しくありません。');
+      }
+      return;
+    }
+
+    setError('アカウントIDまたはパスワードが正しくありません。');
   };
 
   const clearTenant = () => {

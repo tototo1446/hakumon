@@ -309,7 +309,7 @@ const AdminView: React.FC<AdminViewProps> = ({ type, onSelectOrg, orgId }) => {
                   <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">{org.name}</td>
                   <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-slate-500 hidden lg:table-cell">
                     <code className="px-2 py-1 bg-slate-100 text-slate-700 rounded text-xs font-mono break-all">
-                      {org.slug}
+                      {org.id}
                     </code>
                   </td>
                   <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-slate-500 hidden md:table-cell">{org.createdAt}</td>

@@ -73,8 +73,8 @@ export async function getOrganizations(): Promise<Organization[]> {
         createdAt: org.created_at.split('T')[0], // YYYY-MM-DD形式に変換
         memberCount: memberCount || 0,
         avgScore: Math.round(avgScore),
-        // その他のフィールドは現在のスキーマにないため、デフォルト値を使用
-        accountId: org.slug, // 暫定的にslugを使用
+        // account_idカラムが存在する場合はそれを使用、なければslugを使用（後方互換性）
+        accountId: (org as any).account_id || org.slug,
       };
     }));
 
@@ -165,7 +165,7 @@ export async function getOrganizationById(id: string): Promise<Organization | nu
       createdAt: data.created_at.split('T')[0],
       memberCount: memberCount || 0,
       avgScore: Math.round(avgScore),
-      accountId: data.slug,
+      accountId: (data as any).account_id || data.slug,
     };
   } catch (error) {
     console.error('法人の取得に失敗しました:', error);
@@ -243,7 +243,7 @@ export async function getOrganizationBySlug(slug: string): Promise<Organization 
       createdAt: data.created_at.split('T')[0],
       memberCount: memberCount || 0,
       avgScore: Math.round(avgScore),
-      accountId: data.slug,
+      accountId: (data as any).account_id || data.slug,
     };
   } catch (error) {
     console.error('法人の取得に失敗しました:', error);
@@ -269,6 +269,7 @@ export async function createOrganization(
       .insert({
         slug: orgData.slug,
         name: orgData.name,
+        account_id: orgData.accountId, // アカウントIDを保存
       })
       .select()
       .single();
@@ -287,7 +288,7 @@ export async function createOrganization(
       createdAt: data.created_at.split('T')[0],
       memberCount: 0,
       avgScore: 0,
-      accountId: data.slug,
+      accountId: (data as any).account_id || data.slug,
       // その他のフィールドは現在のスキーマにないため、デフォルト値を使用
       logo: orgData.logo,
       description: orgData.description,
@@ -323,6 +324,7 @@ export async function updateOrganization(
 
     if (orgData.name) updateData.name = orgData.name;
     if (orgData.slug) updateData.slug = orgData.slug;
+    if (orgData.accountId) updateData.account_id = orgData.accountId;
 
     const { data, error } = await supabase
       .from('organizations')
@@ -384,7 +386,7 @@ export async function updateOrganization(
       createdAt: data.created_at.split('T')[0],
       memberCount: memberCount || 0,
       avgScore: Math.round(avgScore),
-      accountId: data.slug,
+      accountId: (data as any).account_id || data.slug,
     };
   } catch (error) {
     console.error('法人の更新に失敗しました:', error);
@@ -453,5 +455,127 @@ export async function checkSlugAvailability(slug: string, excludeId?: string): P
   } catch (error) {
     console.error('Slugの重複チェックに失敗しました:', error);
     return false;
+  }
+}
+
+/**
+ * アカウントIDで法人を取得
+ */
+export async function getOrganizationByAccountId(accountId: string): Promise<Organization | null> {
+  try {
+    // 環境変数が設定されていない場合はnullを返す
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+    if (!supabaseUrl) {
+      return null;
+    }
+
+    const { data, error } = await supabase
+      .from('organizations')
+      .select('*')
+      .eq('account_id', accountId)
+      .single();
+
+    if (error) {
+      // account_idで見つからない場合は、slugで検索（後方互換性）
+      const { data: slugData, error: slugError } = await supabase
+        .from('organizations')
+        .select('*')
+        .eq('slug', accountId)
+        .single();
+
+      if (slugError) {
+        console.error('法人の取得エラー:', slugError);
+        return null;
+      }
+
+      if (!slugData) return null;
+
+      // メンバー数と平均スコアを計算（既存のロジックを再利用）
+      const { count: memberCount } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('organization_id', slugData.id);
+
+      let avgScore = 0;
+      try {
+        const { data: responses } = await supabase
+          .from('survey_responses')
+          .select('*')
+          .eq('organization_id', slugData.id);
+
+        if (responses && responses.length > 0) {
+          const surveyResponses = responses.map((r: any) => ({
+            id: r.id,
+            surveyId: r.survey_id,
+            orgId: r.organization_id,
+            respondentName: r.respondent_name || '',
+            submittedAt: r.submitted_at,
+            answers: Array.isArray(r.answers) ? r.answers : (typeof r.answers === 'string' ? JSON.parse(r.answers) : []),
+          }));
+
+          const rankDefinition = getRankDefinition(slugData.id);
+          const orgScores = calculateOrgAverageScore(slugData.id, surveyResponses, rankDefinition);
+          avgScore = calculateOverallScore(orgScores);
+        }
+      } catch (error) {
+        console.error(`法人 ${slugData.name} の平均スコア計算エラー:`, error);
+      }
+
+      return {
+        id: slugData.id,
+        slug: slugData.slug,
+        name: slugData.name,
+        createdAt: slugData.created_at.split('T')[0],
+        memberCount: memberCount || 0,
+        avgScore: Math.round(avgScore),
+        accountId: (slugData as any).account_id || slugData.slug,
+      };
+    }
+
+    if (!data) return null;
+
+    // メンバー数と平均スコアを計算
+    const { count: memberCount } = await supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true })
+      .eq('organization_id', data.id);
+
+    let avgScore = 0;
+    try {
+      const { data: responses } = await supabase
+        .from('survey_responses')
+        .select('*')
+        .eq('organization_id', data.id);
+
+      if (responses && responses.length > 0) {
+        const surveyResponses = responses.map((r: any) => ({
+          id: r.id,
+          surveyId: r.survey_id,
+          orgId: r.organization_id,
+          respondentName: r.respondent_name || '',
+          submittedAt: r.submitted_at,
+          answers: Array.isArray(r.answers) ? r.answers : (typeof r.answers === 'string' ? JSON.parse(r.answers) : []),
+        }));
+
+        const rankDefinition = getRankDefinition(data.id);
+        const orgScores = calculateOrgAverageScore(data.id, surveyResponses, rankDefinition);
+        avgScore = calculateOverallScore(orgScores);
+      }
+    } catch (error) {
+      console.error(`法人 ${data.name} の平均スコア計算エラー:`, error);
+    }
+
+    return {
+      id: data.id,
+      slug: data.slug,
+      name: data.name,
+      createdAt: data.created_at.split('T')[0],
+      memberCount: memberCount || 0,
+      avgScore: Math.round(avgScore),
+      accountId: (data as any).account_id || data.slug,
+    };
+  } catch (error) {
+    console.error('法人の取得に失敗しました:', error);
+    return null;
   }
 }
