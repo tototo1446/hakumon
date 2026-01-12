@@ -13,6 +13,12 @@ import {
   updateOrganization, 
   deleteOrganization 
 } from '../services/organizationService';
+import {
+  getUsers,
+  createUser,
+  updateUser,
+  deleteUser as deleteUserService
+} from '../services/userService';
 
 interface AdminViewProps {
   type: 'orgs' | 'users';
@@ -32,12 +38,14 @@ const AdminView: React.FC<AdminViewProps> = ({ type, onSelectOrg, orgId }) => {
   const [editingRankDefinitionOrg, setEditingRankDefinitionOrg] = useState<Organization | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Supabaseから法人一覧を取得
+  // Supabaseからデータを取得
   useEffect(() => {
     if (type === 'orgs') {
       loadOrganizations();
+    } else if (type === 'users') {
+      loadUsers();
     }
-  }, [type]);
+  }, [type, orgId]);
 
   const loadOrganizations = async () => {
     setLoading(true);
@@ -58,6 +66,32 @@ const AdminView: React.FC<AdminViewProps> = ({ type, onSelectOrg, orgId }) => {
     }
   };
 
+  const loadUsers = async () => {
+    setLoading(true);
+    try {
+      const data = await getUsers(orgId);
+      if (data.length > 0) {
+        setUsers(data);
+      } else {
+        // Supabaseにデータがない場合は、MOCK_USERSを使用（後方互換性）
+        // orgIdでフィルタリング
+        const filteredUsers = orgId 
+          ? MOCK_USERS.filter(u => u.orgId === orgId)
+          : MOCK_USERS;
+        setUsers(filteredUsers);
+      }
+    } catch (error) {
+      console.error('ユーザー一覧の読み込みに失敗しました:', error);
+      // エラー時はMOCK_USERSを使用
+      const filteredUsers = orgId 
+        ? MOCK_USERS.filter(u => u.orgId === orgId)
+        : MOCK_USERS;
+      setUsers(filteredUsers);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDeleteOrg = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (confirm('この法人アカウントを削除してもよろしいですか？すべてのデータが消失します。')) {
@@ -71,19 +105,15 @@ const AdminView: React.FC<AdminViewProps> = ({ type, onSelectOrg, orgId }) => {
     }
   };
 
-  const handleDeleteUser = (id: string, e: React.MouseEvent) => {
+  const handleDeleteUser = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (confirm('このユーザーを削除してもよろしいですか？')) {
-      const userToDelete = users.find(u => u.id === id);
-      setUsers(users.filter(u => u.id !== id));
-      
-      // 所属法人のメンバー数を更新
-      if (userToDelete?.orgId) {
-        setOrgs(orgs.map(org => 
-          org.id === userToDelete.orgId
-            ? { ...org, memberCount: Math.max(0, org.memberCount - 1) }
-            : org
-        ));
+      try {
+        await deleteUserService(id);
+        setUsers(users.filter(u => u.id !== id));
+      } catch (error) {
+        console.error('ユーザーの削除に失敗しました:', error);
+        alert('ユーザーの削除に失敗しました。もう一度お試しください。');
       }
     }
   };
@@ -165,34 +195,31 @@ const AdminView: React.FC<AdminViewProps> = ({ type, onSelectOrg, orgId }) => {
     }
   };
 
-  const handleSaveUser = (userData: Omit<User, 'id' | 'scores'>) => {
-    if (editingUser) {
-      // 編集モード
-      setUsers(users.map(user => 
-        user.id === editingUser.id 
-          ? { ...user, ...userData, scores: editingUser.scores }
-          : user
-      ));
-    } else {
-      // 新規追加モード
-      const newUser: User = {
-        ...userData,
-        id: `u-${Date.now()}`,
-        scores: { basics: 0, prompting: 0, ethics: 0, tools: 0, automation: 0 },
-      };
-      setUsers([...users, newUser]);
-      
-      // 所属法人のメンバー数を更新
-      if (userData.orgId) {
-        setOrgs(orgs.map(org => 
-          org.id === userData.orgId
-            ? { ...org, memberCount: org.memberCount + 1 }
-            : org
-        ));
+  const handleSaveUser = async (userData: Omit<User, 'id' | 'scores'>) => {
+    try {
+      if (editingUser) {
+        // 編集モード：Supabaseに更新
+        const updatedUser = await updateUser(editingUser.id, userData);
+        if (updatedUser) {
+          setUsers(users.map(user => 
+            user.id === editingUser.id 
+              ? updatedUser
+              : user
+          ));
+        }
+      } else {
+        // 新規追加モード：Supabaseに作成
+        const newUser = await createUser(userData);
+        if (newUser) {
+          setUsers([...users, newUser]);
+        }
       }
+      setIsUserModalOpen(false);
+      setEditingUser(null);
+    } catch (error) {
+      console.error('ユーザーの保存に失敗しました:', error);
+      alert('ユーザーの保存に失敗しました。もう一度お試しください。');
     }
-    setIsUserModalOpen(false);
-    setEditingUser(null);
   };
 
   return (
@@ -222,7 +249,7 @@ const AdminView: React.FC<AdminViewProps> = ({ type, onSelectOrg, orgId }) => {
             onClick={handleOpenAddUserModal}
             className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 transition-colors whitespace-nowrap"
           >
-            ユーザーを招待
+            ユーザーを追加
           </button>
         )}
       </div>

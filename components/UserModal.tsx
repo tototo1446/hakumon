@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { User, Role, Organization } from '../types';
+import { User, Role } from '../types';
 import { MOCK_ORGS } from '../constants';
-import { sendInvitationEmail, getEmailNotificationMessage } from '../services/emailService';
 
 interface UserModalProps {
   isOpen: boolean;
@@ -21,10 +20,6 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSave, user, or
     position: '',
   });
 
-  const [sendingEmail, setSendingEmail] = useState(false);
-  const [emailSent, setEmailSent] = useState(false);
-  const [emailError, setEmailError] = useState('');
-
   useEffect(() => {
     if (user) {
       // 編集モード：既存データをフォームに設定
@@ -36,8 +31,6 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSave, user, or
         department: user.department || '',
         position: user.position || '',
       });
-      setEmailSent(false);
-      setEmailError('');
     } else {
       // 新規追加モード：フォームをリセット
       setFormData({
@@ -48,8 +41,6 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSave, user, or
         department: '',
         position: '',
       });
-      setEmailSent(false);
-      setEmailError('');
     }
   }, [user, orgId, isOpen]);
 
@@ -58,12 +49,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSave, user, or
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const generateInvitationToken = (): string => {
-    // 実際の実装では、より安全なトークン生成を使用
-    return `inv_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.name.trim() || !formData.email.trim() || !formData.orgId) {
@@ -78,57 +64,18 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSave, user, or
       return;
     }
 
-    if (!user) {
-      // 新規追加：招待メールを送信
-      setSendingEmail(true);
-      setEmailError('');
-      
-      const invitationToken = generateInvitationToken();
-      const expiresAt = new Date();
-      expiresAt.setHours(expiresAt.getHours() + 24); // 24時間有効
+    const userData: Omit<User, 'id' | 'scores'> = {
+      name: formData.name.trim(),
+      email: formData.email.trim(),
+      role: formData.role,
+      orgId: formData.orgId,
+      department: formData.department.trim() || undefined,
+      position: formData.position.trim() || undefined,
+      pendingPassword: false,
+    };
 
-      const newUser: Omit<User, 'id' | 'scores'> = {
-        name: formData.name.trim(),
-        email: formData.email.trim(),
-        role: formData.role,
-        orgId: formData.orgId,
-        pendingPassword: true,
-        invitationToken,
-        invitationExpiresAt: expiresAt.toISOString(),
-        department: formData.department.trim() || undefined,
-        position: formData.position.trim() || undefined,
-      };
-
-      const org = MOCK_ORGS.find(o => o.id === formData.orgId);
-      const emailSent = await sendInvitationEmail(newUser as User, org || null, invitationToken);
-      
-      setSendingEmail(false);
-      
-      if (emailSent) {
-        setEmailSent(true);
-        onSave(newUser);
-        // モーダルは閉じずに、メール送信成功メッセージを表示
-        setTimeout(() => {
-          onClose();
-        }, 2000);
-      } else {
-        setEmailError('メール送信に失敗しました。ユーザーは作成されましたが、手動で招待リンクを送信してください。');
-        onSave(newUser);
-      }
-    } else {
-      // 編集モード：メール送信なし
-      const updatedUser: Omit<User, 'id' | 'scores'> = {
-        ...user,
-        name: formData.name.trim(),
-        email: formData.email.trim(),
-        role: formData.role,
-        orgId: formData.orgId,
-        department: formData.department.trim() || undefined,
-        position: formData.position.trim() || undefined,
-      };
-      onSave(updatedUser);
-      onClose();
-    }
+    onSave(userData);
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -148,7 +95,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSave, user, or
             <div className="bg-white px-6 pt-6 pb-4">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-2xl font-bold text-slate-900">
-                  {user ? 'ユーザー情報を編集' : '新規ユーザーを招待'}
+                  {user ? 'ユーザー情報を編集' : '新規ユーザーを追加'}
                 </h3>
                 <button
                   type="button"
@@ -276,30 +223,6 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSave, user, or
                     />
                   </div>
                 </div>
-
-                {/* メール送信状態 */}
-                {!user && (
-                  <div className="mt-4">
-                    {sendingEmail && (
-                      <div className="p-3 rounded-lg bg-blue-50 text-blue-600 text-sm border border-blue-100">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
-                          <span>招待メールを送信中...</span>
-                        </div>
-                      </div>
-                    )}
-                    {emailSent && (
-                      <div className="p-3 rounded-lg bg-green-50 text-green-600 text-sm border border-green-100">
-                        ✓ {formData.email} に招待メールを送信しました。
-                      </div>
-                    )}
-                    {emailError && (
-                      <div className="p-3 rounded-lg bg-red-50 text-red-600 text-sm border border-red-100">
-                        {emailError}
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
             </div>
 
@@ -308,17 +231,15 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSave, user, or
               <button
                 type="button"
                 onClick={onClose}
-                disabled={sendingEmail}
-                className="px-4 py-2 border border-slate-300 rounded-lg bg-white text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-50"
+                className="px-4 py-2 border border-slate-300 rounded-lg bg-white text-slate-700 hover:bg-slate-50 transition-colors"
               >
                 キャンセル
               </button>
               <button
                 type="submit"
-                disabled={sendingEmail || emailSent}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
               >
-                {sendingEmail ? '送信中...' : user ? '更新' : '招待メールを送信'}
+                {user ? '更新' : '追加'}
               </button>
             </div>
           </form>
