@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar, Cell } from 'recharts';
-import { Organization, SurveyResponse } from '../types';
+import { Organization, SurveyResponse, Answer, Survey } from '../types';
 import { LITERACY_DIMENSIONS } from '../constants';
 import { getResponsesByOrg, getResponsesByRespondent, saveResponse } from '../services/surveyResponseService';
 import { calculateScoreFromResponse, calculateOverallScore, calculateOrgAverageScore } from '../services/literacyScoreService';
 import { getRankDefinition } from '../services/rankDefinitionService';
 import { generateDemoResponses } from '../services/demoDataService';
 import { calculateRankChanges, calculateRankChangeStats, getRankFromScore } from '../services/rankCalculationService';
+import { getSurveysByOrg } from '../services/surveyService';
 
 interface RespondentGrowthAnalysisProps {
   org: Organization;
@@ -31,10 +32,113 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
   // 期間選択用のstate
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
+  
+  // 属性フィルタ用のstate
+  const [surveys, setSurveys] = useState<Survey[]>([]);
+  const [attributeFilters, setAttributeFilters] = useState<{ [key: string]: string }>({});
 
   const targetOrgId = viewingOrg?.id || org.id;
   const rankDefinition = viewingOrg?.rankDefinition || org.rankDefinition || getRankDefinition(targetOrgId);
   const orgResponses = responses.filter(r => r.orgId === targetOrgId);
+
+  // 属性質問を特定する関数（部署、役職など）
+  const identifyAttributeQuestions = useMemo(() => {
+    const attributeKeywords = {
+      department: ['部署', 'department', '所属部署', '所属', '事業部'],
+      position: ['役職', 'position', '職位', '職種', '役割'],
+    };
+
+    const attributeQuestions: { [key: string]: { questionId: string; title: string; type: string } } = {};
+
+    surveys.forEach(survey => {
+      survey.questions.forEach(question => {
+        const titleLower = question.title.toLowerCase();
+        
+        // 部署関連の質問を検出
+        if (attributeKeywords.department.some(keyword => 
+          titleLower.includes(keyword.toLowerCase()) || 
+          question.id.toLowerCase().includes('department') ||
+          question.id.toLowerCase().includes('dept')
+        )) {
+          if (!attributeQuestions.department) {
+            attributeQuestions.department = {
+              questionId: question.id,
+              title: question.title,
+              type: question.type,
+            };
+          }
+        }
+        
+        // 役職関連の質問を検出
+        if (attributeKeywords.position.some(keyword => 
+          titleLower.includes(keyword.toLowerCase()) || 
+          question.id.toLowerCase().includes('position') ||
+          question.id.toLowerCase().includes('role')
+        )) {
+          if (!attributeQuestions.position) {
+            attributeQuestions.position = {
+              questionId: question.id,
+              title: question.title,
+              type: question.type,
+            };
+          }
+        }
+      });
+    });
+
+    return attributeQuestions;
+  }, [surveys]);
+
+  // 回答データから属性情報を抽出
+  const extractAttributeValue = (response: SurveyResponse, questionId: string): string | null => {
+    const answer = response.answers.find(a => a.questionId === questionId);
+    if (!answer) return null;
+    
+    if (Array.isArray(answer.value)) {
+      return answer.value.join(', ');
+    }
+    return answer.value || null;
+  };
+
+  // 属性フィルタリングを含むフィルタリング（useCallbackでメモ化）
+  const applyAttributeFilters = useCallback((responses: SurveyResponse[]): SurveyResponse[] => {
+    return responses.filter(response => {
+      // 各属性フィルタをチェック
+      for (const [attributeKey, filterValue] of Object.entries(attributeFilters)) {
+        if (!filterValue) continue; // フィルタが設定されていない場合はスキップ
+        
+        const questionInfo = identifyAttributeQuestions[attributeKey];
+        if (!questionInfo) continue;
+        
+        const attributeValue = extractAttributeValue(response, questionInfo.questionId);
+        if (!attributeValue || attributeValue !== filterValue) {
+          return false; // フィルタに一致しない場合は除外
+        }
+      }
+      return true; // すべてのフィルタに一致
+    });
+  }, [attributeFilters, identifyAttributeQuestions]);
+
+  // 各属性の選択肢を取得
+  const getAttributeOptions = (attributeKey: string): string[] => {
+    const questionInfo = identifyAttributeQuestions[attributeKey];
+    if (!questionInfo) return [];
+    
+    const values = new Set<string>();
+    orgResponses.forEach(response => {
+      const value = extractAttributeValue(response, questionInfo.questionId);
+      if (value) {
+        // 複数選択の場合は分割
+        if (value.includes(',')) {
+          value.split(',').forEach(v => values.add(v.trim()));
+        } else {
+          values.add(value);
+        }
+      }
+    });
+    
+    return Array.from(values).sort();
+  };
 
   // 初期期間を設定（データが存在する場合は最初と最後の日付を使用）
   useEffect(() => {
@@ -54,22 +158,30 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
     }
   }, [orgResponses.length]);
 
-  // 期間でフィルタリングされた回答データ
+  // 期間と属性でフィルタリングされた回答データ
   const filteredResponses = useMemo(() => {
-    if (!startDate || !endDate) return orgResponses;
+    let filtered = orgResponses;
     
-    const start = new Date(startDate + '-01');
-    const end = new Date(endDate + '-01');
-    // 終了月の最後の日を設定
-    end.setMonth(end.getMonth() + 1);
-    end.setDate(0);
-    end.setHours(23, 59, 59, 999);
+    // 期間フィルタを適用
+    if (startDate && endDate) {
+      const start = new Date(startDate + '-01');
+      const end = new Date(endDate + '-01');
+      // 終了月の最後の日を設定
+      end.setMonth(end.getMonth() + 1);
+      end.setDate(0);
+      end.setHours(23, 59, 59, 999);
+      
+      filtered = filtered.filter(response => {
+        const responseDate = new Date(response.submittedAt);
+        return responseDate >= start && responseDate <= end;
+      });
+    }
     
-    return orgResponses.filter(response => {
-      const responseDate = new Date(response.submittedAt);
-      return responseDate >= start && responseDate <= end;
-    });
-  }, [orgResponses, startDate, endDate]);
+    // 属性フィルタを適用
+    filtered = applyAttributeFilters(filtered);
+    
+    return filtered;
+  }, [orgResponses, startDate, endDate, attributeFilters, identifyAttributeQuestions]);
 
   // 回答データを取得し、データが存在しない場合は初期デモデータを生成
   useEffect(() => {
@@ -89,8 +201,13 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
       setResponses(loadedResponses);
     }
     
-    // 法人が変更されたら、選択された回答者をリセット
+    // アンケートデータを取得（属性情報抽出用）
+    const orgSurveys = getSurveysByOrg(targetOrgId);
+    setSurveys(orgSurveys);
+    
+    // 法人が変更されたら、選択された回答者とフィルタをリセット
     setSelectedRespondent(null);
+    setAttributeFilters({});
   }, [targetOrgId, viewingOrg, org]);
 
   // 回答者一覧を取得（フィルタリング後のデータから）
@@ -99,12 +216,12 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
     return Array.from(uniqueNames).sort();
   }, [filteredResponses]);
 
-  // 選択された回答者の回答履歴を取得（時系列でソート、期間フィルタ適用）
+  // 選択された回答者の回答履歴を取得（時系列でソート、期間・属性フィルタ適用）
   const respondentHistory = useMemo(() => {
     if (!selectedRespondent) return [];
     const allRespondentResponses = getResponsesByRespondent(selectedRespondent, targetOrgId);
     // 期間フィルタを適用
-    const respondentResponses = allRespondentResponses.filter(response => {
+    let respondentResponses = allRespondentResponses.filter(response => {
       if (!startDate || !endDate) return true;
       const responseDate = new Date(response.submittedAt);
       const start = new Date(startDate + '-01');
@@ -114,6 +231,8 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
       end.setHours(23, 59, 59, 999);
       return responseDate >= start && responseDate <= end;
     });
+    // 属性フィルタを適用
+    respondentResponses = applyAttributeFilters(respondentResponses);
     return respondentResponses
       .map(response => {
         const scores = calculateScoreFromResponse(response, rankDefinition || undefined);
@@ -132,7 +251,7 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
         };
       })
       .sort((a, b) => a.timestamp - b.timestamp);
-  }, [selectedRespondent, targetOrgId, rankDefinition]);
+  }, [selectedRespondent, targetOrgId, rankDefinition, startDate, endDate, attributeFilters, identifyAttributeQuestions]);
 
   // 成長率を計算
   const growthRate = useMemo(() => {
@@ -144,12 +263,12 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
     return Math.round(rate * 10) / 10; // 小数点第1位まで
   }, [respondentHistory]);
 
-  // 回答者毎の最新スコアと成長率を計算（期間フィルタ適用）
+  // 回答者毎の最新スコアと成長率を計算（期間・属性フィルタ適用）
   const respondentStats = useMemo(() => {
     return respondents.map(name => {
       const allRespondentResponses = getResponsesByRespondent(name, targetOrgId);
       // 期間フィルタを適用
-      const respondentResponses = allRespondentResponses
+      let respondentResponses = allRespondentResponses
         .filter(response => {
           if (!startDate || !endDate) return true;
           const responseDate = new Date(response.submittedAt);
@@ -159,7 +278,11 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
           end.setDate(0);
           end.setHours(23, 59, 59, 999);
           return responseDate >= start && responseDate <= end;
-        })
+        });
+      // 属性フィルタを適用
+      respondentResponses = applyAttributeFilters(respondentResponses);
+      // スコア計算
+      respondentResponses = respondentResponses
         .map(response => {
           const scores = calculateScoreFromResponse(response, rankDefinition || undefined);
           const overallScore = calculateOverallScore(scores);
@@ -193,7 +316,7 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
       growthRate: number;
       responseCount: number;
     }>;
-  }, [respondents, targetOrgId, rankDefinition]);
+  }, [respondents, targetOrgId, rankDefinition, startDate, endDate, attributeFilters, identifyAttributeQuestions]);
 
   // ランク変動情報を計算（期間フィルタ適用）
   const rankChanges = useMemo(() => {
@@ -322,8 +445,9 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
         )}
       </div>
 
-      {/* 期間選択セクション */}
-      <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200">
+      {/* フィルタセクション */}
+      <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200 space-y-4">
+        {/* 期間選択 */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h3 className="text-base sm:text-lg font-bold text-slate-800 mb-1">分析期間の選択</h3>
@@ -357,12 +481,82 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
             </button>
           </div>
         </div>
-        {startDate && endDate && (
-          <div className="mt-3 pt-3 border-t border-slate-200">
+
+        {/* 属性フィルタ */}
+        {(identifyAttributeQuestions.department || identifyAttributeQuestions.position) && (
+          <>
+            <div className="border-t border-slate-200 pt-4">
+              <h3 className="text-base sm:text-lg font-bold text-slate-800 mb-3">属性で絞り込み</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {identifyAttributeQuestions.department && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      {identifyAttributeQuestions.department.title}
+                    </label>
+                    <select
+                      value={attributeFilters.department || ''}
+                      onChange={(e) => setAttributeFilters(prev => ({
+                        ...prev,
+                        department: e.target.value || ''
+                      }))}
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none bg-white text-slate-900"
+                    >
+                      <option value="">すべて</option>
+                      {getAttributeOptions('department').map(option => (
+                        <option key={option} value={option}>{option}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                {identifyAttributeQuestions.position && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      {identifyAttributeQuestions.position.title}
+                    </label>
+                    <select
+                      value={attributeFilters.position || ''}
+                      onChange={(e) => setAttributeFilters(prev => ({
+                        ...prev,
+                        position: e.target.value || ''
+                      }))}
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none bg-white text-slate-900"
+                    >
+                      <option value="">すべて</option>
+                      {getAttributeOptions('position').map(option => (
+                        <option key={option} value={option}>{option}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+              {(attributeFilters.department || attributeFilters.position) && (
+                <button
+                  onClick={() => setAttributeFilters({})}
+                  className="mt-3 px-3 py-2 text-sm text-slate-600 hover:text-slate-800 border border-slate-300 rounded-lg hover:bg-slate-50"
+                >
+                  属性フィルタをクリア
+                </button>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* フィルタサマリー */}
+        {(startDate || endDate || attributeFilters.department || attributeFilters.position) && (
+          <div className="border-t border-slate-200 pt-3">
             <p className="text-xs text-slate-600">
-              表示中のデータ: <span className="font-medium text-slate-800">
-                {startDate.replace('-', '年').replace(/(\d{4})年(\d{2})/, '$1年$2月')} ～ {endDate.replace('-', '年').replace(/(\d{4})年(\d{2})/, '$1年$2月')}
-              </span>
+              表示中のデータ: 
+              {startDate && endDate && (
+                <span className="font-medium text-slate-800 ml-1">
+                  {startDate.replace('-', '年').replace(/(\d{4})年(\d{2})/, '$1年$2月')} ～ {endDate.replace('-', '年').replace(/(\d{4})年(\d{2})/, '$1年$2月')}
+                </span>
+              )}
+              {(attributeFilters.department || attributeFilters.position) && (
+                <span className="font-medium text-slate-800 ml-1">
+                  {attributeFilters.department && ` | ${identifyAttributeQuestions.department?.title}: ${attributeFilters.department}`}
+                  {attributeFilters.position && ` | ${identifyAttributeQuestions.position?.title}: ${attributeFilters.position}`}
+                </span>
+              )}
               <span className="ml-2 text-slate-500">
                 ({filteredResponses.length}件の回答データ)
               </span>
