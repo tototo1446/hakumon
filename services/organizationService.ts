@@ -1,5 +1,7 @@
 import { supabase } from '../lib/supabase';
 import { Organization } from '../types';
+import { calculateOrgAverageScore, calculateOverallScore } from './literacyScoreService';
+import { getRankDefinition } from './rankDefinitionService';
 
 /**
  * Supabaseから全法人を取得
@@ -23,17 +25,60 @@ export async function getOrganizations(): Promise<Organization[]> {
       return []; // エラー時は空配列を返す
     }
 
-    // SupabaseのデータをOrganization型に変換
-    return (data || []).map((org) => ({
-      id: org.id,
-      slug: org.slug,
-      name: org.name,
-      createdAt: org.created_at.split('T')[0], // YYYY-MM-DD形式に変換
-      memberCount: 0, // TODO: profilesテーブルから集計
-      avgScore: 0, // TODO: survey_responsesテーブルから集計
-      // その他のフィールドは現在のスキーマにないため、デフォルト値を使用
-      accountId: org.slug, // 暫定的にslugを使用
+    // SupabaseのデータをOrganization型に変換（メンバー数と平均スコアを計算）
+    const organizations = await Promise.all((data || []).map(async (org) => {
+      // メンバー数をprofilesテーブルから集計
+      const { count: memberCount, error: memberError } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('organization_id', org.id);
+
+      if (memberError) {
+        console.error(`法人 ${org.name} のメンバー数取得エラー:`, memberError);
+      }
+
+      // 平均スコアをsurvey_responsesテーブルから計算
+      let avgScore = 0;
+      try {
+        const { data: responses, error: responseError } = await supabase
+          .from('survey_responses')
+          .select('*')
+          .eq('organization_id', org.id);
+
+        if (responseError) {
+          console.error(`法人 ${org.name} の回答データ取得エラー:`, responseError);
+        } else if (responses && responses.length > 0) {
+          // SurveyResponse型に変換
+          const surveyResponses = responses.map((r: any) => ({
+            id: r.id,
+            surveyId: r.survey_id,
+            orgId: r.organization_id,
+            respondentName: r.respondent_name || '',
+            submittedAt: r.submitted_at,
+            answers: Array.isArray(r.answers) ? r.answers : (typeof r.answers === 'string' ? JSON.parse(r.answers) : []),
+          }));
+
+          const rankDefinition = getRankDefinition(org.id);
+          const orgScores = calculateOrgAverageScore(org.id, surveyResponses, rankDefinition);
+          avgScore = calculateOverallScore(orgScores);
+        }
+      } catch (error) {
+        console.error(`法人 ${org.name} の平均スコア計算エラー:`, error);
+      }
+
+      return {
+        id: org.id,
+        slug: org.slug,
+        name: org.name,
+        createdAt: org.created_at.split('T')[0], // YYYY-MM-DD形式に変換
+        memberCount: memberCount || 0,
+        avgScore: Math.round(avgScore),
+        // その他のフィールドは現在のスキーマにないため、デフォルト値を使用
+        accountId: org.slug, // 暫定的にslugを使用
+      };
     }));
+
+    return organizations;
   } catch (error) {
     console.error('法人一覧の取得に失敗しました:', error);
     return [];
@@ -74,13 +119,52 @@ export async function getOrganizationById(id: string): Promise<Organization | nu
 
     if (!data) return null;
 
+    // メンバー数をprofilesテーブルから集計
+    const { count: memberCount, error: memberError } = await supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true })
+      .eq('organization_id', data.id);
+
+    if (memberError) {
+      console.error(`法人 ${data.name} のメンバー数取得エラー:`, memberError);
+    }
+
+    // 平均スコアをsurvey_responsesテーブルから計算
+    let avgScore = 0;
+    try {
+      const { data: responses, error: responseError } = await supabase
+        .from('survey_responses')
+        .select('*')
+        .eq('organization_id', data.id);
+
+      if (responseError) {
+        console.error(`法人 ${data.name} の回答データ取得エラー:`, responseError);
+      } else if (responses && responses.length > 0) {
+        // SurveyResponse型に変換
+        const surveyResponses = responses.map((r: any) => ({
+          id: r.id,
+          surveyId: r.survey_id,
+          orgId: r.organization_id,
+          respondentName: r.respondent_name || '',
+          submittedAt: r.submitted_at,
+          answers: Array.isArray(r.answers) ? r.answers : (typeof r.answers === 'string' ? JSON.parse(r.answers) : []),
+        }));
+
+        const rankDefinition = getRankDefinition(data.id);
+        const orgScores = calculateOrgAverageScore(data.id, surveyResponses, rankDefinition);
+        avgScore = calculateOverallScore(orgScores);
+      }
+    } catch (error) {
+      console.error(`法人 ${data.name} の平均スコア計算エラー:`, error);
+    }
+
     return {
       id: data.id,
       slug: data.slug,
       name: data.name,
       createdAt: data.created_at.split('T')[0],
-      memberCount: 0,
-      avgScore: 0,
+      memberCount: memberCount || 0,
+      avgScore: Math.round(avgScore),
       accountId: data.slug,
     };
   } catch (error) {
@@ -113,13 +197,52 @@ export async function getOrganizationBySlug(slug: string): Promise<Organization 
 
     if (!data) return null;
 
+    // メンバー数をprofilesテーブルから集計
+    const { count: memberCount, error: memberError } = await supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true })
+      .eq('organization_id', data.id);
+
+    if (memberError) {
+      console.error(`法人 ${data.name} のメンバー数取得エラー:`, memberError);
+    }
+
+    // 平均スコアをsurvey_responsesテーブルから計算
+    let avgScore = 0;
+    try {
+      const { data: responses, error: responseError } = await supabase
+        .from('survey_responses')
+        .select('*')
+        .eq('organization_id', data.id);
+
+      if (responseError) {
+        console.error(`法人 ${data.name} の回答データ取得エラー:`, responseError);
+      } else if (responses && responses.length > 0) {
+        // SurveyResponse型に変換
+        const surveyResponses = responses.map((r: any) => ({
+          id: r.id,
+          surveyId: r.survey_id,
+          orgId: r.organization_id,
+          respondentName: r.respondent_name || '',
+          submittedAt: r.submitted_at,
+          answers: Array.isArray(r.answers) ? r.answers : (typeof r.answers === 'string' ? JSON.parse(r.answers) : []),
+        }));
+
+        const rankDefinition = getRankDefinition(data.id);
+        const orgScores = calculateOrgAverageScore(data.id, surveyResponses, rankDefinition);
+        avgScore = calculateOverallScore(orgScores);
+      }
+    } catch (error) {
+      console.error(`法人 ${data.name} の平均スコア計算エラー:`, error);
+    }
+
     return {
       id: data.id,
       slug: data.slug,
       name: data.name,
       createdAt: data.created_at.split('T')[0],
-      memberCount: 0,
-      avgScore: 0,
+      memberCount: memberCount || 0,
+      avgScore: Math.round(avgScore),
       accountId: data.slug,
     };
   } catch (error) {
@@ -215,13 +338,52 @@ export async function updateOrganization(
 
     if (!data) return null;
 
+    // メンバー数をprofilesテーブルから集計
+    const { count: memberCount, error: memberError } = await supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true })
+      .eq('organization_id', data.id);
+
+    if (memberError) {
+      console.error(`法人 ${data.name} のメンバー数取得エラー:`, memberError);
+    }
+
+    // 平均スコアをsurvey_responsesテーブルから計算
+    let avgScore = 0;
+    try {
+      const { data: responses, error: responseError } = await supabase
+        .from('survey_responses')
+        .select('*')
+        .eq('organization_id', data.id);
+
+      if (responseError) {
+        console.error(`法人 ${data.name} の回答データ取得エラー:`, responseError);
+      } else if (responses && responses.length > 0) {
+        // SurveyResponse型に変換
+        const surveyResponses = responses.map((r: any) => ({
+          id: r.id,
+          surveyId: r.survey_id,
+          orgId: r.organization_id,
+          respondentName: r.respondent_name || '',
+          submittedAt: r.submitted_at,
+          answers: Array.isArray(r.answers) ? r.answers : (typeof r.answers === 'string' ? JSON.parse(r.answers) : []),
+        }));
+
+        const rankDefinition = getRankDefinition(data.id);
+        const orgScores = calculateOrgAverageScore(data.id, surveyResponses, rankDefinition);
+        avgScore = calculateOverallScore(orgScores);
+      }
+    } catch (error) {
+      console.error(`法人 ${data.name} の平均スコア計算エラー:`, error);
+    }
+
     return {
       id: data.id,
       slug: data.slug,
       name: data.name,
       createdAt: data.created_at.split('T')[0],
-      memberCount: 0,
-      avgScore: 0,
+      memberCount: memberCount || 0,
+      avgScore: Math.round(avgScore),
       accountId: data.slug,
     };
   } catch (error) {
