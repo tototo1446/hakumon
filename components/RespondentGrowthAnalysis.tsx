@@ -36,8 +36,6 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
   // 属性フィルタ用のstate
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [attributeFilters, setAttributeFilters] = useState<{ [key: string]: string }>({});
-  // 分析ビューのタイプ（'all' | 'department' | 'position'）
-  const [analysisView, setAnalysisView] = useState<'all' | 'department' | 'position'>('all');
 
   const targetOrgId = viewingOrg?.id || org.id;
   const rankDefinition = viewingOrg?.rankDefinition || org.rankDefinition || getRankDefinition(targetOrgId);
@@ -450,9 +448,9 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
     }
   };
 
-  // 部署別・役職別の集計データを計算
+  // 部署別・役職別の集計データを計算（フィルタリング用の統計情報として使用）
   const departmentStats = useMemo(() => {
-    if (!identifyAttributeQuestions.department || analysisView !== 'department') return [];
+    if (!identifyAttributeQuestions.department) return [];
     
     const deptMap = new Map<string, { responses: SurveyResponse[]; names: Set<string> }>();
     
@@ -498,10 +496,10 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
         responseCount: data.responses.length,
       };
     }).sort((a, b) => b.avgScore - a.avgScore);
-  }, [filteredResponses, identifyAttributeQuestions, analysisView, rankDefinition]);
+      }, [filteredResponses, identifyAttributeQuestions, rankDefinition]);
 
   const positionStats = useMemo(() => {
-    if (!identifyAttributeQuestions.position || analysisView !== 'position') return [];
+    if (!identifyAttributeQuestions.position) return [];
     
     const positionMap = new Map<string, { responses: SurveyResponse[]; names: Set<string> }>();
     
@@ -547,7 +545,7 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
         responseCount: data.responses.length,
       };
     }).sort((a, b) => b.avgScore - a.avgScore);
-  }, [filteredResponses, identifyAttributeQuestions, analysisView, rankDefinition]);
+      }, [filteredResponses, identifyAttributeQuestions, rankDefinition]);
 
   return (
     <div className="space-y-6">
@@ -585,69 +583,6 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
           </div>
         )}
       </div>
-
-      {/* 分析ビュータブ */}
-      <div className="bg-white p-1 rounded-lg shadow-sm border border-slate-200 inline-flex gap-1">
-        <button
-          onClick={() => {
-            setAnalysisView('all');
-            setAttributeFilters({});
-          }}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-            analysisView === 'all'
-              ? 'bg-indigo-600 text-white'
-              : 'text-slate-600 hover:text-slate-800 hover:bg-slate-100'
-          }`}
-        >
-          全体分析
-        </button>
-        <button
-          onClick={() => {
-            setAnalysisView('department');
-            setAttributeFilters({});
-          }}
-          disabled={!identifyAttributeQuestions.department}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-            analysisView === 'department'
-              ? 'bg-indigo-600 text-white'
-              : identifyAttributeQuestions.department
-              ? 'text-slate-600 hover:text-slate-800 hover:bg-slate-100'
-              : 'text-slate-400 cursor-not-allowed opacity-50'
-          }`}
-          title={!identifyAttributeQuestions.department ? '部署に関する質問がアンケートに含まれていません' : ''}
-        >
-          部署別分析
-        </button>
-        <button
-          onClick={() => {
-            setAnalysisView('position');
-            setAttributeFilters({});
-          }}
-          disabled={!identifyAttributeQuestions.position}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-            analysisView === 'position'
-              ? 'bg-indigo-600 text-white'
-              : identifyAttributeQuestions.position
-              ? 'text-slate-600 hover:text-slate-800 hover:bg-slate-100'
-              : 'text-slate-400 cursor-not-allowed opacity-50'
-          }`}
-          title={!identifyAttributeQuestions.position ? '役職に関する質問がアンケートに含まれていません' : ''}
-        >
-          役職別分析
-        </button>
-      </div>
-      
-      {/* 属性質問が検出されない場合のメッセージ */}
-      {surveys.length > 0 && !identifyAttributeQuestions.department && !identifyAttributeQuestions.position && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <p className="text-sm text-yellow-800">
-            <strong>注意:</strong> 部署や役職に関する質問がアンケートに含まれていないため、部署別・役職別分析は利用できません。
-          </p>
-          <p className="text-xs text-yellow-700 mt-2">
-            アンケート管理画面で、アンケートに「部署」や「役職」というキーワードを含む質問を追加すると、部署別・役職別分析が利用可能になります。
-          </p>
-        </div>
-      )}
 
       {/* フィルタセクション */}
       <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200 space-y-4">
@@ -795,85 +730,8 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
         </div>
       )}
 
-      {/* 部署別分析 */}
-      {analysisView === 'department' && (
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-          <h3 className="text-base sm:text-lg font-bold text-slate-800 mb-4">部署別分析</h3>
-          {departmentStats.length > 0 ? (
-            <div className="space-y-4">
-              {departmentStats.map((dept) => (
-                <div key={dept.name} className="border border-slate-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-semibold text-slate-800">{dept.name}</h4>
-                    <span className="text-sm text-slate-600">
-                      {dept.memberCount}名 / {dept.responseCount}件の回答
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 mt-3">
-                    <div>
-                      <p className="text-xs text-slate-600 mb-1">平均スコア</p>
-                      <p className="text-2xl font-bold text-indigo-600">{dept.avgScore}点</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-600 mb-1">成長率</p>
-                      <p className={`text-2xl font-bold ${dept.growthRate >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {dept.growthRate >= 0 ? '+' : ''}{dept.growthRate}%
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-slate-600">部署別のデータがありません。</p>
-              <p className="text-sm text-slate-500 mt-2">アンケートに部署に関する質問が含まれているか確認してください。</p>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* 役職別分析 */}
-      {analysisView === 'position' && (
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-          <h3 className="text-base sm:text-lg font-bold text-slate-800 mb-4">役職別分析</h3>
-          {positionStats.length > 0 ? (
-            <div className="space-y-4">
-              {positionStats.map((position) => (
-                <div key={position.name} className="border border-slate-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-semibold text-slate-800">{position.name}</h4>
-                    <span className="text-sm text-slate-600">
-                      {position.memberCount}名 / {position.responseCount}件の回答
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 mt-3">
-                    <div>
-                      <p className="text-xs text-slate-600 mb-1">平均スコア</p>
-                      <p className="text-2xl font-bold text-indigo-600">{position.avgScore}点</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-600 mb-1">成長率</p>
-                      <p className={`text-2xl font-bold ${position.growthRate >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {position.growthRate >= 0 ? '+' : ''}{position.growthRate}%
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-slate-600">役職別のデータがありません。</p>
-              <p className="text-sm text-slate-500 mt-2">アンケートに役職に関する質問が含まれているか確認してください。</p>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* 全体分析の表示（analysisView === 'all'の場合のみ） */}
-      {analysisView === 'all' && (
-        <>
+      {/* 分析結果の表示 */}
+      <>
           {/* ランクサマリーカード */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
         <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200">
@@ -1219,8 +1077,6 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
             上記から回答者を選択すると、詳細な成長率グラフが表示されます。
           </p>
         </div>
-      )}
-        </>
       )}
     </div>
   );
