@@ -652,6 +652,82 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
     setResponses([]);
   };
 
+  // CSV形式に変換してダウンロード
+  const handleExportToCSV = () => {
+    if (!viewingResponses || responses.length === 0) {
+      alert('エクスポートする回答データがありません。');
+      return;
+    }
+
+    // CSVヘッダーを作成
+    const headers = ['回答者名', '回答日時'];
+    viewingResponses.questions.forEach((question) => {
+      headers.push(question.title);
+    });
+
+    // CSVデータ行を作成
+    const rows = responses.map((response) => {
+      const row: string[] = [
+        response.respondentName,
+        new Date(response.submittedAt).toLocaleString('ja-JP'),
+      ];
+
+      viewingResponses.questions.forEach((question) => {
+        const answer = response.answers.find((a) => a.questionId === question.id);
+        let answerText = '';
+
+        if (answer) {
+          if (answer.type === 'checkbox' && Array.isArray(answer.value)) {
+            // チェックボックスの場合、選択肢のラベルを結合
+            const labels = answer.value.map((val) => {
+              const option = question.options?.find((opt) => opt.value === val);
+              return option ? option.label : val;
+            });
+            answerText = labels.join('、');
+          } else if (answer.type === 'radio' || answer.type === 'rank') {
+            // ラジオボタンやランクの場合、選択肢のラベルを取得
+            const option = question.options?.find((opt) => opt.value === answer.value);
+            answerText = option ? option.label : (answer.value as string) || '';
+          } else {
+            // テキストやテキストエリアの場合
+            answerText = (answer.value as string) || '';
+          }
+        }
+
+        // CSV形式に適した形式に変換（改行を削除、ダブルクォートで囲む）
+        answerText = answerText.replace(/"/g, '""'); // ダブルクォートをエスケープ
+        if (answerText.includes(',') || answerText.includes('\n') || answerText.includes('"')) {
+          answerText = `"${answerText}"`;
+        }
+        row.push(answerText);
+      });
+
+      return row;
+    });
+
+    // CSV文字列を生成
+    const csvContent = [
+      headers.join(','),
+      ...rows.map((row) => row.join(',')),
+    ].join('\n');
+
+    // BOMを追加してExcelで正しく表示されるようにする
+    const BOM = '\uFEFF';
+    const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    
+    // ファイル名を生成（アンケートタイトル + 日時）
+    const fileName = `${viewingResponses.title}_${new Date().toISOString().split('T')[0]}.csv`;
+    link.download = fileName;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   // 回答画面を表示中の場合
   if (respondingSurvey) {
     return (
@@ -1120,10 +1196,17 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="mb-4 p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
+                <div className="mb-4 p-3 bg-indigo-50 border border-indigo-200 rounded-lg flex items-center justify-between">
                   <p className="text-sm text-indigo-900">
                     回答数: <span className="font-bold">{responses.length}</span>件
                   </p>
+                  <button
+                    onClick={handleExportToCSV}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 text-sm"
+                  >
+                    <span>📥</span>
+                    CSVダウンロード
+                  </button>
                 </div>
 
                 <div className="space-y-6">
@@ -1187,10 +1270,19 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
               </div>
             )}
 
-            <div className="flex justify-end mt-6">
+            <div className="flex justify-between items-center mt-6">
+              {responses.length > 0 && (
+                <button
+                  onClick={handleExportToCSV}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+                >
+                  <span>📥</span>
+                  CSVダウンロード
+                </button>
+              )}
               <button
                 onClick={handleCloseResponsesModal}
-                className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors"
+                className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors ml-auto"
               >
                 閉じる
               </button>
