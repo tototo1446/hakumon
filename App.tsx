@@ -11,6 +11,7 @@ import SurveyManagement from './components/SurveyManagement';
 import RankDefinitionSettings from './components/RankDefinitionSettings';
 import SurveyResponseForm from './components/SurveyResponseForm';
 import RespondentGrowthAnalysis from './components/RespondentGrowthAnalysis';
+import AddTestUsers from './components/AddTestUsers';
 import { findSurveyById } from './services/surveyService';
 import { saveResponse } from './services/surveyResponseService';
 import { getOrganizationById } from './services/organizationService';
@@ -187,7 +188,7 @@ const AppContent: React.FC = () => {
   }
 
   // 現在のパスからactiveViewを決定
-  const getActiveView = (): 'dashboard' | 'orgs' | 'surveys' | 'rankDefinition' | 'users' | 'growth' => {
+  const getActiveView = (): 'dashboard' | 'orgs' | 'surveys' | 'rankDefinition' | 'users' | 'growth' | 'add-test-users' => {
     const path = location.pathname;
     if (path.startsWith('/dashboard')) return 'dashboard';
     if (path.startsWith('/surveys')) return 'surveys';
@@ -195,6 +196,7 @@ const AppContent: React.FC = () => {
     if (path.startsWith('/users')) return 'users';
     if (path.startsWith('/growth')) return 'growth';
     if (path.startsWith('/orgs')) return 'orgs';
+    if (path.startsWith('/add-test-users')) return 'add-test-users';
     return 'dashboard';
   };
 
@@ -272,6 +274,14 @@ const AppContent: React.FC = () => {
               element={
                 <ProtectedRoute auth={auth} allowedForOrgAdmin={false}>
                   <AdminView type="orgs" onSelectOrg={handleSelectOrg} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/add-test-users"
+              element={
+                <ProtectedRoute auth={auth} allowedForOrgAdmin={false}>
+                  <AddTestUsers />
                 </ProtectedRoute>
               }
             />
