@@ -20,6 +20,20 @@ const Layout: React.FC<LayoutProps> = ({ children, org, isSuperAdmin, onLogout, 
     return location.pathname.startsWith(path);
   };
 
+  // 法人用の場合はtenantパラメータを取得
+  const getTenantParam = () => {
+    if (isSuperAdmin) return '';
+    const params = new URLSearchParams(location.search);
+    const tenantId = params.get('tenant');
+    return tenantId ? `?tenant=${tenantId}` : (org ? `?tenant=${org.id}` : '');
+  };
+
+  // Linkのto属性を生成（法人用の場合はtenantパラメータを追加）
+  const createLinkTo = (path: string) => {
+    const tenantParam = getTenantParam();
+    return tenantParam ? `${path}${tenantParam}` : path;
+  };
+
   return (
     <div className="flex h-screen bg-slate-900 overflow-hidden">
       {/* Mobile Menu Overlay */}
@@ -43,7 +57,7 @@ const Layout: React.FC<LayoutProps> = ({ children, org, isSuperAdmin, onLogout, 
 
         <nav className="flex-1 mt-6 px-4 space-y-1">
           <Link
-            to="/dashboard"
+            to={createLinkTo('/dashboard')}
             onClick={() => setIsMobileMenuOpen(false)}
             className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${isActive('/dashboard') ? 'bg-indigo-600 text-white' : 'text-slate-700 hover:bg-slate-100'}`}
           >
@@ -53,7 +67,7 @@ const Layout: React.FC<LayoutProps> = ({ children, org, isSuperAdmin, onLogout, 
 
           {!isSuperAdmin && (
             <Link
-              to="/surveys"
+              to={createLinkTo('/surveys')}
               onClick={() => setIsMobileMenuOpen(false)}
               className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${isActive('/surveys') ? 'bg-indigo-600 text-white' : 'text-slate-700 hover:bg-slate-100'}`}
             >
@@ -64,7 +78,7 @@ const Layout: React.FC<LayoutProps> = ({ children, org, isSuperAdmin, onLogout, 
 
           {!isSuperAdmin && (
             <Link
-              to="/rank-definition"
+              to={createLinkTo('/rank-definition')}
               onClick={() => setIsMobileMenuOpen(false)}
               className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${isActive('/rank-definition') ? 'bg-indigo-600 text-white' : 'text-slate-700 hover:bg-slate-100'}`}
             >
@@ -74,7 +88,7 @@ const Layout: React.FC<LayoutProps> = ({ children, org, isSuperAdmin, onLogout, 
           )}
 
           <Link
-            to="/growth"
+            to={createLinkTo('/growth')}
             onClick={() => setIsMobileMenuOpen(false)}
             className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${isActive('/growth') ? 'bg-indigo-600 text-white' : 'text-slate-700 hover:bg-slate-100'}`}
           >

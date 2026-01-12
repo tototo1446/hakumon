@@ -22,16 +22,25 @@ const ProtectedRoute: React.FC<{
   allowedForSuperAdmin?: boolean;
   allowedForOrgAdmin?: boolean;
 }> = ({ children, auth, allowedForSuperAdmin = true, allowedForOrgAdmin = true }) => {
+  const location = useLocation();
+
   if (!auth.isAuthenticated || !auth.org) {
     return <Navigate to="/" replace />;
   }
 
+  // tenantパラメータを取得
+  const params = new URLSearchParams(location.search);
+  const tenantId = params.get('tenant');
+  const tenantParam = tenantId ? `?tenant=${tenantId}` : '';
+
   if (auth.isSuperAdmin && !allowedForSuperAdmin) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={`/dashboard${tenantParam}`} replace />;
   }
 
   if (!auth.isSuperAdmin && !allowedForOrgAdmin) {
-    return <Navigate to="/dashboard" replace />;
+    // 法人用の場合はtenantパラメータを保持
+    const orgTenantParam = auth.org ? `?tenant=${auth.org.id}` : '';
+    return <Navigate to={`/dashboard${orgTenantParam}`} replace />;
   }
 
   return <>{children}</>;
@@ -92,8 +101,22 @@ const AppContent: React.FC = () => {
       isAuthenticated: true,
       isSuperAdmin: isSuperAdmin || false
     }));
+    
     // ログイン後、ダッシュボードにリダイレクト
-    navigate('/dashboard');
+    // 法人用ログインの場合は、URLにtenantパラメータを含める
+    const params = new URLSearchParams(window.location.search);
+    const tenantId = params.get('tenant');
+    
+    if (!isSuperAdmin && tenantId) {
+      // 法人用ログイン：tenantパラメータを保持
+      navigate(`/dashboard?tenant=${tenantId}`);
+    } else if (!isSuperAdmin && org) {
+      // 法人用ログインだがtenantパラメータがない場合：org.idを使用
+      navigate(`/dashboard?tenant=${org.id}`);
+    } else {
+      // 管理者用ログイン：tenantパラメータなし
+      navigate('/dashboard');
+    }
   };
 
   const handleLogout = () => {
@@ -105,15 +128,32 @@ const AppContent: React.FC = () => {
     setAuth(prev => ({ ...prev, viewingOrg: org }));
     // 成長率分析画面以外ではダッシュボードにリダイレクト
     if (org && location.pathname !== '/growth') {
-      navigate('/dashboard');
+      // 法人用の場合はtenantパラメータを保持
+      const params = new URLSearchParams(location.search);
+      const tenantId = params.get('tenant');
+      if (tenantId) {
+        navigate(`/dashboard?tenant=${tenantId}`);
+      } else {
+        navigate('/dashboard');
+      }
     }
   };
 
   const clearViewingOrg = () => {
-    const url = new URL(window.location.href);
-    url.searchParams.delete('tenant');
-    window.history.pushState({}, '', url.toString());
-    setAuth(prev => ({ ...prev, viewingOrg: null }));
+    // 法人用の場合はtenantパラメータを保持（viewingOrgのみクリア）
+    const params = new URLSearchParams(location.search);
+    const tenantId = params.get('tenant');
+    
+    if (tenantId && !auth.isSuperAdmin) {
+      // 法人用の場合はtenantパラメータを保持したままviewingOrgをクリア
+      setAuth(prev => ({ ...prev, viewingOrg: null }));
+    } else {
+      // 管理者用の場合はtenantパラメータを削除
+      const url = new URL(window.location.href);
+      url.searchParams.delete('tenant');
+      window.history.pushState({}, '', url.toString());
+      setAuth(prev => ({ ...prev, viewingOrg: null }));
+    }
   };
 
   // 公開回答画面を表示中の場合（ログイン不要）
@@ -226,8 +266,24 @@ const AppContent: React.FC = () => {
                 </ProtectedRoute>
               }
             />
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            <Route 
+              path="/" 
+              element={
+                <Navigate 
+                  to={auth.isSuperAdmin ? '/dashboard' : `/dashboard?tenant=${auth.org!.id}`} 
+                  replace 
+                />
+              } 
+            />
+            <Route 
+              path="*" 
+              element={
+                <Navigate 
+                  to={auth.isSuperAdmin ? '/dashboard' : `/dashboard?tenant=${auth.org!.id}`} 
+                  replace 
+                />
+              } 
+            />
           </Routes>
         </Layout>
       )}
