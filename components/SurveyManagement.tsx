@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Survey, Question, QuestionOption, Role, QuestionType, SurveyResponse } from '../types';
 import SurveyEditor from './SurveyEditor';
 import SurveyResponseForm from './SurveyResponseForm';
 import { saveSurveys, getSurveysByOrg } from '../services/surveyService';
+import { getResponsesBySurveyFromSupabase } from '../services/surveyResponseService';
 
 interface SurveyManagementProps {
   userRole: Role;
@@ -192,6 +193,25 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
 
   const [surveys, setSurveys] = useState<Survey[]>(loadSurveys());
   const [copiedLinkId, setCopiedLinkId] = useState<string | null>(null);
+  const [responseCounts, setResponseCounts] = useState<Record<string, number>>({});
+
+  // 各アンケートの回答数を取得
+  useEffect(() => {
+    const fetchResponseCounts = async () => {
+      const counts: Record<string, number> = {};
+      for (const survey of surveys) {
+        try {
+          const surveyResponses = await getResponsesBySurveyFromSupabase(survey.id, orgId);
+          counts[survey.id] = surveyResponses.length;
+        } catch (error) {
+          console.error(`アンケート ${survey.id} の回答数取得に失敗しました:`, error);
+          counts[survey.id] = 0;
+        }
+      }
+      setResponseCounts(counts);
+    };
+    fetchResponseCounts();
+  }, [surveys, orgId]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false);
   const [editingSurvey, setEditingSurvey] = useState<Survey | null>(null);
@@ -199,6 +219,9 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
   const [respondingSurvey, setRespondingSurvey] = useState<Survey | null>(null);
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [editingQuestionIndex, setEditingQuestionIndex] = useState<number>(-1);
+  const [viewingResponses, setViewingResponses] = useState<Survey | null>(null);
+  const [responses, setResponses] = useState<SurveyResponse[]>([]);
+  const [loadingResponses, setLoadingResponses] = useState(false);
   const [formData, setFormData] = useState<Partial<Survey>>({
     title: '',
     description: '',
@@ -587,6 +610,25 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
     setRespondingSurvey(null);
   };
 
+  const handleViewResponses = async (survey: Survey) => {
+    setViewingResponses(survey);
+    setLoadingResponses(true);
+    try {
+      const surveyResponses = await getResponsesBySurveyFromSupabase(survey.id, orgId);
+      setResponses(surveyResponses);
+    } catch (error) {
+      console.error('回答データの取得に失敗しました:', error);
+      setResponses([]);
+    } finally {
+      setLoadingResponses(false);
+    }
+  };
+
+  const handleCloseResponsesModal = () => {
+    setViewingResponses(null);
+    setResponses([]);
+  };
+
   // 回答画面を表示中の場合
   if (respondingSurvey) {
     return (
@@ -653,6 +695,7 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
                 )}
                 <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-slate-500">
                   <span>質問数: {survey.questions.length}</span>
+                  <span>回答数: {responseCounts[survey.id] ?? 0}</span>
                   <span>作成日: {new Date(survey.createdAt).toLocaleDateString('ja-JP')}</span>
                   <span>更新日: {new Date(survey.updatedAt).toLocaleDateString('ja-JP')}</span>
                 </div>
@@ -705,6 +748,12 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
                     回答する
                   </button>
                 )}
+                <button
+                  onClick={() => handleViewResponses(survey)}
+                  className="px-3 py-1.5 bg-purple-600 text-white rounded text-xs sm:text-sm hover:bg-purple-700 transition-colors whitespace-nowrap"
+                >
+                  回答結果
+                </button>
                 <button
                   onClick={() => handleOpenEditor(survey)}
                   className="px-3 py-1.5 bg-indigo-600 text-white rounded text-xs sm:text-sm hover:bg-indigo-700 transition-colors whitespace-nowrap"
@@ -991,6 +1040,111 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
                 className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
               >
                 保存
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 回答結果モーダル */}
+      {viewingResponses && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-4 sm:p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-slate-800">
+                {viewingResponses.title} - 回答結果
+              </h3>
+              <button
+                onClick={handleCloseResponsesModal}
+                className="text-slate-500 hover:text-slate-700 text-2xl font-bold"
+              >
+                ×
+              </button>
+            </div>
+
+            {loadingResponses ? (
+              <div className="text-center py-8">
+                <p className="text-slate-600">読み込み中...</p>
+              </div>
+            ) : responses.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-slate-600">まだ回答がありません。</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="mb-4 p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
+                  <p className="text-sm text-indigo-900">
+                    回答数: <span className="font-bold">{responses.length}</span>件
+                  </p>
+                </div>
+
+                <div className="space-y-6">
+                  {responses.map((response) => (
+                    <div
+                      key={response.id}
+                      className="border border-slate-200 rounded-lg p-4 bg-slate-50"
+                    >
+                      <div className="flex items-center justify-between mb-3 pb-3 border-b border-slate-200">
+                        <div>
+                          <h4 className="font-semibold text-slate-800">{response.respondentName}</h4>
+                          <p className="text-xs text-slate-500">
+                            回答日時: {new Date(response.submittedAt).toLocaleString('ja-JP')}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        {viewingResponses.questions.map((question, qIndex) => {
+                          const answer = response.answers.find(
+                            (a) => a.questionId === question.id
+                          );
+                          if (!answer) return null;
+
+                          return (
+                            <div key={question.id} className="bg-white rounded p-3 border border-slate-200">
+                              <p className="font-medium text-slate-700 mb-2 text-sm">
+                                {qIndex + 1}. {question.title}
+                                {question.required && (
+                                  <span className="text-red-500 ml-1">*</span>
+                                )}
+                              </p>
+                              <div className="text-slate-600 text-sm">
+                                {answer.type === 'checkbox' && Array.isArray(answer.value) ? (
+                                  <ul className="list-disc list-inside space-y-1">
+                                    {answer.value.map((val, idx) => {
+                                      const option = question.options?.find((opt) => opt.value === val);
+                                      return (
+                                        <li key={idx}>{option ? option.label : val}</li>
+                                      );
+                                    })}
+                                  </ul>
+                                ) : answer.type === 'radio' || answer.type === 'rank' ? (
+                                  (() => {
+                                    const option = question.options?.find(
+                                      (opt) => opt.value === answer.value
+                                    );
+                                    return <p>{option ? option.label : answer.value}</p>;
+                                  })()
+                                ) : (
+                                  <p className="whitespace-pre-wrap">{answer.value || '(未回答)'}</p>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={handleCloseResponsesModal}
+                className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors"
+              >
+                閉じる
               </button>
             </div>
           </div>

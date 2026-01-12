@@ -1,4 +1,5 @@
-import { SurveyResponse } from '../types';
+import { SurveyResponse, Answer } from '../types';
+import { supabase } from '../lib/supabase';
 
 const STORAGE_KEY_PREFIX = 'survey_responses_';
 
@@ -84,5 +85,106 @@ export async function getResponsesBySurveyFromAPI(surveyId: string, orgId: strin
   // const response = await fetch(`/api/surveys/${surveyId}/responses?orgId=${orgId}`);
   // return response.json();
   return getResponsesBySurvey(surveyId, orgId);
+}
+
+/**
+ * Supabaseからアンケート別の回答一覧を取得
+ */
+export async function getResponsesBySurveyFromSupabase(surveyId: string, orgId: string): Promise<SurveyResponse[]> {
+  try {
+    const { data, error } = await supabase
+      .from('survey_responses')
+      .select('*')
+      .eq('survey_id', surveyId)
+      .eq('organization_id', orgId)
+      .order('submitted_at', { ascending: false });
+
+    if (error) {
+      console.error('回答データの取得に失敗しました:', error);
+      return [];
+    }
+
+    if (!data) return [];
+
+    // データベースの形式をアプリケーションの形式に変換
+    return data.map((row: any) => ({
+      id: row.id,
+      surveyId: row.survey_id,
+      respondentName: row.respondent_name || '匿名',
+      orgId: row.organization_id,
+      answers: row.answers as Answer[],
+      submittedAt: row.submitted_at,
+    }));
+  } catch (error) {
+    console.error('回答データの取得中にエラーが発生しました:', error);
+    return [];
+  }
+}
+
+/**
+ * Supabaseから法人別の回答一覧を取得
+ */
+export async function getResponsesByOrgFromSupabase(orgId: string): Promise<SurveyResponse[]> {
+  try {
+    const { data, error } = await supabase
+      .from('survey_responses')
+      .select('*')
+      .eq('organization_id', orgId)
+      .order('submitted_at', { ascending: false });
+
+    if (error) {
+      console.error('回答データの取得に失敗しました:', error);
+      return [];
+    }
+
+    if (!data) return [];
+
+    // データベースの形式をアプリケーションの形式に変換
+    return data.map((row: any) => ({
+      id: row.id,
+      surveyId: row.survey_id,
+      respondentName: row.respondent_name || '匿名',
+      orgId: row.organization_id,
+      answers: row.answers as Answer[],
+      submittedAt: row.submitted_at,
+    }));
+  } catch (error) {
+    console.error('回答データの取得中にエラーが発生しました:', error);
+    return [];
+  }
+}
+
+/**
+ * Supabaseから回答者別の回答一覧を取得
+ */
+export async function getResponsesByRespondentFromSupabase(respondentName: string, orgId: string): Promise<SurveyResponse[]> {
+  try {
+    const { data, error } = await supabase
+      .from('survey_responses')
+      .select('*')
+      .eq('respondent_name', respondentName)
+      .eq('organization_id', orgId)
+      .order('submitted_at', { ascending: false });
+
+    if (error) {
+      console.error('回答データの取得に失敗しました:', error);
+      return [];
+    }
+
+    if (!data) return [];
+
+    // データベースの形式をアプリケーションの形式に変換
+    return data.map((row: any) => ({
+      id: row.id,
+      surveyId: row.survey_id,
+      respondentName: row.respondent_name || '匿名',
+      orgId: row.organization_id,
+      answers: row.answers as Answer[],
+      submittedAt: row.submitted_at,
+    }));
+  } catch (error) {
+    console.error('回答データの取得中にエラーが発生しました:', error);
+    return [];
+  }
 }
 
