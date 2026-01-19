@@ -189,7 +189,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                 <select
                   value={viewingOrg?.id || ''}
                   onChange={handleOrgChange}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none bg-white text-slate-900"
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none bg-white text-slate-900"
                 >
                   <option value="">マイダッシュボード</option>
                   {organizations.map(org => (
@@ -217,7 +217,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 
       {/* 法人ビュー表示バナー */}
       {viewingOrg && (
-        <div className="bg-indigo-600 text-white px-4 sm:px-6 py-4 rounded-xl shadow-md flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="bg-sky-400 text-white px-4 sm:px-6 py-4 rounded-xl shadow-md flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center space-x-3 flex-1 min-w-0">
             {viewingOrg.logo ? (
               <img
@@ -232,7 +232,7 @@ const Dashboard: React.FC<DashboardProps> = ({
               <span className="text-xl sm:text-2xl flex-shrink-0">🏢</span>
             )}
             <div className="min-w-0 flex-1">
-              <p className="text-xs text-indigo-200 font-bold uppercase tracking-wider">組織ビュー実行中</p>
+              <p className="text-xs text-sky-200 font-bold uppercase tracking-wider">組織ビュー実行中</p>
               <h3 className="text-base sm:text-xl font-bold truncate">{viewingOrg.name} の状況を表示しています</h3>
             </div>
           </div>
@@ -281,15 +281,15 @@ const Dashboard: React.FC<DashboardProps> = ({
             <button
               onClick={fetchInsight}
               disabled={loadingInsight}
-              className="text-xs text-indigo-600 hover:text-indigo-800 font-medium whitespace-nowrap ml-2"
+              className="text-xs text-sky-500 hover:text-sky-800 font-medium whitespace-nowrap ml-2"
             >
               {loadingInsight ? '分析中...' : '再生成'}
             </button>
           </div>
-          <div className="flex-1 bg-indigo-50/50 rounded-lg p-4 sm:p-5 border border-indigo-100 text-slate-700 text-xs sm:text-sm leading-relaxed overflow-y-auto max-h-64">
+          <div className="flex-1 bg-sky-50/50 rounded-lg p-4 sm:p-5 border border-sky-100 text-slate-700 text-xs sm:text-sm leading-relaxed overflow-y-auto max-h-64">
             {loadingInsight ? (
               <div className="flex flex-col items-center justify-center h-full space-y-2">
-                <div className="w-8 h-8 border-4 border-indigo-400 border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-8 h-8 border-4 border-sky-400 border-t-transparent rounded-full animate-spin"></div>
                 <p className="text-slate-500 italic">スコアをAIが解析しています...</p>
               </div>
             ) : (
@@ -321,7 +321,7 @@ const Dashboard: React.FC<DashboardProps> = ({
             回答者数
           </p>
           <div className="flex items-end space-x-1 sm:space-x-2">
-            <span className="text-xl sm:text-3xl font-bold text-indigo-600">
+            <span className="text-xl sm:text-3xl font-bold text-sky-500">
               {orgResponses.length}名
             </span>
           </div>
@@ -391,7 +391,7 @@ const Dashboard: React.FC<DashboardProps> = ({
             <select
               value={selectedSurveyId || ''}
               onChange={(e) => setSelectedSurveyId(e.target.value || null)}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none bg-white text-slate-900"
+              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none bg-white text-slate-900"
             >
               <option value="">すべてのアンケート</option>
               {surveys.map(survey => (
@@ -410,7 +410,7 @@ const Dashboard: React.FC<DashboardProps> = ({
               return (
                 <div
                   key={response.id}
-                  className="p-4 border border-slate-200 rounded-lg hover:border-indigo-300 transition-colors cursor-pointer"
+                  className="p-4 border border-slate-200 rounded-lg hover:border-sky-300 transition-colors cursor-pointer"
                   onClick={() => setSelectedResponse(response)}
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -421,7 +421,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                         {new Date(response.submittedAt).toLocaleString('ja-JP')}
                       </p>
                     </div>
-                    <button className="text-indigo-600 hover:text-indigo-800 text-sm whitespace-nowrap self-start sm:self-auto">
+                    <button className="text-sky-500 hover:text-sky-800 text-sm whitespace-nowrap self-start sm:self-auto">
                       詳細を見る
                     </button>
                   </div>
@@ -571,9 +571,9 @@ const Dashboard: React.FC<DashboardProps> = ({
                   })()}
                 </p>
               </div>
-              <div className="p-4 bg-indigo-50 rounded-lg border border-indigo-200">
-                <p className="text-sm text-indigo-700 mb-2">削減時間の割合</p>
-                <p className="text-2xl font-bold text-indigo-800">
+              <div className="p-4 bg-sky-50 rounded-lg border border-sky-200">
+                <p className="text-sm text-sky-700 mb-2">削減時間の割合</p>
+                <p className="text-2xl font-bold text-sky-800">
                   {(() => {
                     const totalHours = orgResponses.reduce((sum, response) => {
                       const timeReductionAnswer = response.answers.find(a => {
@@ -594,7 +594,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                     return `${reductionRate}%`;
                   })()}
                 </p>
-                <p className="text-xs text-indigo-600 mt-1">
+                <p className="text-xs text-sky-500 mt-1">
                   総労働時間（{orgResponses.length}名 × 40時間/週）に対する削減時間の割合
                 </p>
               </div>
@@ -660,7 +660,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                 .slice(-6); // 直近6ヶ月
 
               return (
-                <div key={orgItem.id} className="border border-slate-200 rounded-lg p-4 hover:border-indigo-300 transition-colors">
+                <div key={orgItem.id} className="border border-slate-200 rounded-lg p-4 hover:border-sky-300 transition-colors">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
                     <div className="flex items-center gap-3">
                       {orgItem.logo ? (
@@ -687,7 +687,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                     <div className="flex items-center gap-4">
                       <div className="text-right">
                         <p className="text-xs text-slate-600 mb-1">平均スコア</p>
-                        <p className="text-2xl font-bold text-indigo-600">{latestScore}点</p>
+                        <p className="text-2xl font-bold text-sky-500">{latestScore}点</p>
                       </div>
                       <div className="text-right">
                         <p className="text-xs text-slate-600 mb-1">成長率</p>
@@ -697,7 +697,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                       </div>
                       <button
                         onClick={() => onSelectOrg?.(orgItem)}
-                        className="px-3 py-2 text-sm text-indigo-600 hover:text-indigo-800 border border-indigo-300 rounded-lg hover:bg-indigo-50 transition-colors whitespace-nowrap"
+                        className="px-3 py-2 text-sm text-sky-500 hover:text-sky-800 border border-sky-300 rounded-lg hover:bg-sky-50 transition-colors whitespace-nowrap"
                       >
                         詳細を見る
                       </button>

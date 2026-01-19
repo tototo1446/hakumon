@@ -38,7 +38,7 @@ const RankDefinitionSettings: React.FC<RankDefinitionSettingsProps> = ({ org }) 
         </div>
         <button
           onClick={handleOpenEditor}
-          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2 whitespace-nowrap self-start sm:self-auto"
+          className="px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors flex items-center gap-2 whitespace-nowrap self-start sm:self-auto"
         >
           <span>✏️</span>
           ランク定義を編集

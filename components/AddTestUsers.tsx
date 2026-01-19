@@ -182,7 +182,7 @@ const AddTestUsers: React.FC = () => {
         className={`px-6 py-3 rounded-lg font-medium transition-colors ${
           loading
             ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
-            : 'bg-indigo-600 text-white hover:bg-indigo-700'
+            : 'bg-sky-500 text-white hover:bg-sky-600'
         }`}
       >
         {loading ? '追加中...' : 'ユーザーを追加'}

@@ -35,7 +35,7 @@ const Layout: React.FC<LayoutProps> = ({ children, org, isSuperAdmin, onLogout, 
   };
 
   return (
-    <div className="flex h-screen bg-slate-900 overflow-hidden">
+    <div className="flex h-screen bg-white overflow-hidden">
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div 
@@ -59,7 +59,7 @@ const Layout: React.FC<LayoutProps> = ({ children, org, isSuperAdmin, onLogout, 
           <Link
             to={createLinkTo('/dashboard')}
             onClick={() => setIsMobileMenuOpen(false)}
-            className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${isActive('/dashboard') ? 'bg-indigo-600 text-white' : 'text-slate-700 hover:bg-slate-100'}`}
+            className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${isActive('/dashboard') ? 'bg-sky-400 text-white' : 'text-slate-700 hover:bg-sky-50'}`}
           >
             <span className="mr-3">📊</span>
             ダッシュボード
@@ -69,7 +69,7 @@ const Layout: React.FC<LayoutProps> = ({ children, org, isSuperAdmin, onLogout, 
             <Link
               to={createLinkTo('/surveys')}
               onClick={() => setIsMobileMenuOpen(false)}
-              className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${isActive('/surveys') ? 'bg-indigo-600 text-white' : 'text-slate-700 hover:bg-slate-100'}`}
+              className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${isActive('/surveys') ? 'bg-sky-400 text-white' : 'text-slate-700 hover:bg-sky-50'}`}
             >
               <span className="mr-3">📝</span>
               アンケート管理
@@ -80,7 +80,7 @@ const Layout: React.FC<LayoutProps> = ({ children, org, isSuperAdmin, onLogout, 
             <Link
               to={createLinkTo('/rank-definition')}
               onClick={() => setIsMobileMenuOpen(false)}
-              className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${isActive('/rank-definition') ? 'bg-indigo-600 text-white' : 'text-slate-700 hover:bg-slate-100'}`}
+              className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${isActive('/rank-definition') ? 'bg-sky-400 text-white' : 'text-slate-700 hover:bg-sky-50'}`}
             >
               <span className="mr-3">⭐</span>
               ランク定義設定
@@ -91,7 +91,7 @@ const Layout: React.FC<LayoutProps> = ({ children, org, isSuperAdmin, onLogout, 
             <Link
               to={createLinkTo('/users')}
               onClick={() => setIsMobileMenuOpen(false)}
-              className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${isActive('/users') ? 'bg-indigo-600 text-white' : 'text-slate-700 hover:bg-slate-100'}`}
+              className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${isActive('/users') ? 'bg-sky-400 text-white' : 'text-slate-700 hover:bg-sky-50'}`}
             >
               <span className="mr-3">👥</span>
               ユーザー管理
@@ -101,7 +101,7 @@ const Layout: React.FC<LayoutProps> = ({ children, org, isSuperAdmin, onLogout, 
           <Link
             to={createLinkTo('/growth')}
             onClick={() => setIsMobileMenuOpen(false)}
-            className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${isActive('/growth') ? 'bg-indigo-600 text-white' : 'text-slate-700 hover:bg-slate-100'}`}
+            className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${isActive('/growth') ? 'bg-sky-400 text-white' : 'text-slate-700 hover:bg-sky-50'}`}
           >
             <span className="mr-3">📈</span>
             成長率分析
@@ -111,7 +111,7 @@ const Layout: React.FC<LayoutProps> = ({ children, org, isSuperAdmin, onLogout, 
             <Link
               to="/orgs"
               onClick={() => setIsMobileMenuOpen(false)}
-              className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${isActive('/orgs') ? 'bg-indigo-600 text-white' : 'text-slate-700 hover:bg-slate-100'}`}
+              className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${isActive('/orgs') ? 'bg-sky-400 text-white' : 'text-slate-700 hover:bg-sky-50'}`}
             >
               <span className="mr-3">🏢</span>
               法人管理
@@ -120,8 +120,8 @@ const Layout: React.FC<LayoutProps> = ({ children, org, isSuperAdmin, onLogout, 
         </nav>
 
         <div className="p-4 border-t border-slate-200">
-          <div className="flex items-center p-3 mb-4 rounded-lg bg-slate-50">
-            <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center font-bold text-xs text-white">
+          <div className="flex items-center p-3 mb-4 rounded-lg bg-sky-50">
+            <div className="w-8 h-8 rounded-full bg-sky-400 flex items-center justify-center font-bold text-xs text-white">
               {org.name.charAt(0)}
             </div>
             <div className="ml-3 overflow-hidden">
@@ -134,7 +134,7 @@ const Layout: React.FC<LayoutProps> = ({ children, org, isSuperAdmin, onLogout, 
               onLogout();
               setIsMobileMenuOpen(false);
             }}
-            className="w-full py-2 px-4 rounded-lg border border-slate-300 text-slate-700 hover:text-slate-900 hover:border-slate-400 hover:bg-slate-50 transition-all text-sm"
+            className="w-full py-2 px-4 rounded-lg border border-slate-300 text-slate-700 hover:text-slate-900 hover:border-sky-300 hover:bg-sky-50 transition-all text-sm"
           >
             ログアウト
           </button>
@@ -142,20 +142,20 @@ const Layout: React.FC<LayoutProps> = ({ children, org, isSuperAdmin, onLogout, 
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto w-full lg:w-auto bg-slate-900">
-        <header className="h-16 bg-slate-800 border-b border-slate-700 px-4 lg:px-8 flex items-center justify-between sticky top-0 z-10">
+      <main className="flex-1 overflow-y-auto w-full lg:w-auto bg-white">
+        <header className="h-16 bg-white border-b border-slate-200 px-4 lg:px-8 flex items-center justify-between sticky top-0 z-10 shadow-sm">
           <div className="flex items-center gap-4">
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2 text-slate-300 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
+              className="lg:hidden p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
               aria-label="メニューを開く"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
-            <h2 className="text-base lg:text-lg font-semibold text-white">
+            <h2 className="text-base lg:text-lg font-semibold text-slate-900">
             {isActive('/dashboard') && '分析ダッシュボード'}
             {isActive('/surveys') && !isSuperAdmin && 'アンケート管理'}
             {isActive('/rank-definition') && !isSuperAdmin && 'ランク定義設定'}
@@ -165,12 +165,12 @@ const Layout: React.FC<LayoutProps> = ({ children, org, isSuperAdmin, onLogout, 
             </h2>
           </div>
           <div className="flex items-center space-x-2 lg:space-x-4">
-            <div className="text-xs font-medium px-2 lg:px-2.5 py-0.5 rounded-full bg-indigo-600 text-indigo-100 border border-indigo-500 whitespace-nowrap">
+            <div className="text-xs font-medium px-2 lg:px-2.5 py-0.5 rounded-full bg-sky-400 text-white border border-sky-400 whitespace-nowrap">
               {isSuperAdmin ? 'システム管理者' : '法人アカウント'}
             </div>
           </div>
         </header>
-        <div className="p-4 lg:p-8 bg-slate-900">
+        <div className="p-4 lg:p-8 bg-white">
           {children}
         </div>
       </main>

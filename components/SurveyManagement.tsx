@@ -804,7 +804,7 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
         </div>
         <button
           onClick={handleOpenAddModal}
-          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2 whitespace-nowrap self-start sm:self-auto"
+          className="px-4 py-2 bg-sky-400 text-white rounded-lg hover:bg-sky-500 transition-colors flex items-center gap-2 whitespace-nowrap self-start sm:self-auto"
         >
           <span>+</span>
           新規アンケート作成
@@ -843,16 +843,16 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
                 </div>
                 {/* 回答リンクセクション */}
                 {survey.isActive && (
-                  <div className="mt-4 p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
+                  <div className="mt-4 p-3 bg-sky-50 border border-sky-200 rounded-lg">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <p className="text-xs font-medium text-indigo-900 mb-1">回答リンク</p>
+                        <p className="text-xs font-medium text-sky-900 mb-1">回答リンク</p>
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                           <input
                             type="text"
                             value={getResponseLink(survey.id)}
                             readOnly
-                            className="flex-1 px-2 py-1 text-xs bg-white border border-indigo-300 rounded text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 min-w-0"
+                            className="flex-1 px-2 py-1 text-xs bg-white border border-sky-300 rounded text-slate-700 focus:outline-none focus:ring-1 focus:ring-sky-500 min-w-0"
                             onClick={(e) => (e.target as HTMLInputElement).select()}
                           />
                           <button
@@ -860,7 +860,7 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
                             className={`px-3 py-1 text-xs rounded transition-colors whitespace-nowrap ${
                               copiedLinkId === survey.id
                                 ? 'bg-green-500 text-white'
-                                : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                                : 'bg-sky-400 text-white hover:bg-sky-500'
                             }`}
                           >
                             {copiedLinkId === survey.id ? '✓ コピー済み' : '📋 コピー'}
@@ -877,7 +877,7 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
                   className={`px-3 py-1.5 rounded text-xs sm:text-sm transition-colors whitespace-nowrap ${
                     survey.isActive
                       ? 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                      : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                      : 'bg-sky-400 text-white hover:bg-sky-500'
                   }`}
                 >
                   {survey.isActive ? '非公開' : '公開'}
@@ -898,7 +898,7 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
                 </button>
                 <button
                   onClick={() => handleOpenEditor(survey)}
-                  className="px-3 py-1.5 bg-indigo-600 text-white rounded text-xs sm:text-sm hover:bg-indigo-700 transition-colors whitespace-nowrap"
+                  className="px-3 py-1.5 bg-sky-400 text-white rounded text-xs sm:text-sm hover:bg-sky-500 transition-colors whitespace-nowrap"
                 >
                   編集
                 </button>
@@ -930,7 +930,7 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
                   type="text"
                   value={formData.title || ''}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500"
                   placeholder="例: AI活用状況アンケート"
                 />
               </div>
@@ -941,7 +941,7 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
                 <textarea
                   value={formData.description || ''}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500"
                   rows={3}
                   placeholder="アンケートの説明を入力してください"
                 />
@@ -952,7 +952,7 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
                     type="checkbox"
                     checked={formData.isActive ?? true}
                     onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                    className="w-4 h-4 text-indigo-600 bg-white border-slate-300 rounded focus:ring-indigo-500"
+                    className="w-4 h-4 text-sky-500 bg-white border-slate-300 rounded focus:ring-sky-500"
                   />
                   公開状態にする
                 </label>
@@ -967,7 +967,7 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
                       setIsModalOpen(false);
                       handleOpenQuestionModal(editingSurvey);
                     }}
-                    className="text-sm text-indigo-600 hover:text-indigo-700 underline"
+                    className="text-sm text-sky-500 hover:text-sky-700 underline"
                   >
                     質問を編集する
                   </button>
@@ -983,7 +983,7 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
               </button>
               <button
                 onClick={handleSaveSurvey}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                className="px-4 py-2 bg-sky-400 text-white rounded-lg hover:bg-sky-500 transition-colors"
               >
                 保存
               </button>
@@ -1008,7 +1008,7 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
                   type="text"
                   value={questionFormData.title || ''}
                   onChange={(e) => setQuestionFormData({ ...questionFormData, title: e.target.value })}
-                  className="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500"
                   placeholder="質問内容を入力してください"
                 />
               </div>
@@ -1028,7 +1028,7 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
                       rankDescriptions: newType === 'rank' ? (questionFormData.rankDescriptions || {}) : undefined,
                     });
                   }}
-                  className="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
                 >
                   <option value="radio">ラジオボタン（単一選択）</option>
                   <option value="checkbox">チェックボックス（複数選択）</option>
@@ -1044,7 +1044,7 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
                     type="checkbox"
                     checked={questionFormData.required ?? false}
                     onChange={(e) => setQuestionFormData({ ...questionFormData, required: e.target.checked })}
-                    className="w-4 h-4 text-indigo-600 bg-white border-slate-300 rounded focus:ring-indigo-500"
+                    className="w-4 h-4 text-sky-500 bg-white border-slate-300 rounded focus:ring-sky-500"
                   />
                   必須項目にする
                 </label>
@@ -1060,7 +1060,7 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
                       type="text"
                       value={questionFormData.placeholder || ''}
                       onChange={(e) => setQuestionFormData({ ...questionFormData, placeholder: e.target.value })}
-                      className="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500"
                       placeholder="プレースホルダーテキストを入力"
                     />
                   </div>
@@ -1076,7 +1076,7 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
                           ...questionFormData,
                           maxLength: e.target.value ? parseInt(e.target.value) : undefined,
                         })}
-                        className="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500"
                         placeholder="最大文字数を入力"
                       />
                     </div>
@@ -1092,7 +1092,7 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
                     </label>
                     <button
                       onClick={handleAddOption}
-                      className="text-xs px-2 py-1 bg-indigo-50 text-indigo-600 rounded hover:bg-indigo-100 transition-colors"
+                      className="text-xs px-2 py-1 bg-sky-50 text-sky-500 rounded hover:bg-sky-100 transition-colors"
                     >
                       + 選択肢を追加
                     </button>
@@ -1105,14 +1105,14 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
                           value={option.label}
                           onChange={(e) => handleUpdateOption(optIndex, 'label', e.target.value)}
                           placeholder="選択肢のラベル"
-                          className="flex-1 px-3 py-1.5 bg-white border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="flex-1 px-3 py-1.5 bg-white border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
                         />
                         <input
                           type="text"
                           value={option.value}
                           onChange={(e) => handleUpdateOption(optIndex, 'value', e.target.value)}
                           placeholder="値（英数字）"
-                          className="w-32 px-3 py-1.5 bg-white border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="w-32 px-3 py-1.5 bg-white border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
                         />
                         <button
                           onClick={() => handleDeleteOption(optIndex)}
@@ -1146,7 +1146,7 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
                                   value={desc}
                                   onChange={(e) => handleUpdateRankDescription(rank, descIndex, e.target.value)}
                                   placeholder="説明文を入力"
-                                  className="flex-1 px-3 py-1.5 bg-white border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                  className="flex-1 px-3 py-1.5 bg-white border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
                                 />
                                 <button
                                   onClick={() => handleDeleteRankDescription(rank, descIndex)}
@@ -1158,7 +1158,7 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
                             ))}
                             <button
                               onClick={() => handleAddRankDescription(rank)}
-                              className="text-xs px-2 py-1 bg-indigo-50 text-indigo-600 rounded hover:bg-indigo-100 transition-colors"
+                              className="text-xs px-2 py-1 bg-sky-50 text-sky-500 rounded hover:bg-sky-100 transition-colors"
                             >
                               + 説明を追加
                             </button>
@@ -1179,7 +1179,7 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
               </button>
               <button
                 onClick={handleSaveQuestion}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                className="px-4 py-2 bg-sky-400 text-white rounded-lg hover:bg-sky-500 transition-colors"
               >
                 保存
               </button>
@@ -1223,8 +1223,8 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="mb-4 p-3 bg-indigo-50 border border-indigo-200 rounded-lg flex items-center justify-between">
-                  <p className="text-sm text-indigo-900">
+                <div className="mb-4 p-3 bg-sky-50 border border-sky-200 rounded-lg flex items-center justify-between">
+                  <p className="text-sm text-sky-900">
                     回答数: <span className="font-bold">{responses.length}</span>件
                   </p>
                   <button

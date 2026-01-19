@@ -240,20 +240,20 @@ const AdminView: React.FC<AdminViewProps> = ({ type, onSelectOrg, orgId }) => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={type === 'orgs' ? '法人名で検索...' : '名前またはメールで検索...'}
-            className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-lg leading-5 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+            className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-lg leading-5 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-sm"
           />
         </div>
         {type === 'orgs' ? (
           <button
             onClick={handleOpenAddOrgModal}
-            className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 transition-colors whitespace-nowrap"
+            className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-sky-500 hover:bg-sky-600 transition-colors whitespace-nowrap"
           >
             新規法人を追加
           </button>
         ) : (
           <button
             onClick={handleOpenAddUserModal}
-            className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 transition-colors whitespace-nowrap"
+            className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-sky-500 hover:bg-sky-600 transition-colors whitespace-nowrap"
           >
             ユーザーを追加
           </button>
@@ -323,7 +323,7 @@ const AdminView: React.FC<AdminViewProps> = ({ type, onSelectOrg, orgId }) => {
                     <div className="flex flex-wrap justify-end gap-1 sm:gap-2">
                       <button 
                         onClick={() => handleOpenTenantLogin(org)}
-                        className="text-indigo-600 hover:text-indigo-900 text-xs sm:text-sm font-bold bg-indigo-50 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity hidden sm:inline-block"
+                        className="text-sky-500 hover:text-sky-900 text-xs sm:text-sm font-bold bg-sky-50 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity hidden sm:inline-block"
                         title="ログインページへ飛ぶ"
                       >
                         ログイン
@@ -337,7 +337,7 @@ const AdminView: React.FC<AdminViewProps> = ({ type, onSelectOrg, orgId }) => {
                       </button>
                       <button 
                         onClick={() => handleOpenEditOrgModal(org)}
-                        className="text-slate-400 hover:text-indigo-600 text-xs"
+                        className="text-slate-400 hover:text-sky-500 text-xs"
                       >
                         編集
                       </button>
@@ -379,7 +379,7 @@ const AdminView: React.FC<AdminViewProps> = ({ type, onSelectOrg, orgId }) => {
                   <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 py-0.5 text-xs font-medium rounded-md ${
                       user.role === Role.SUPER_ADMIN ? 'bg-purple-100 text-purple-800' : 
-                      user.role === Role.ORG_ADMIN ? 'bg-blue-100 text-blue-800' : 
+                      user.role === Role.ORG_ADMIN ? 'bg-sky-100 text-sky-800' : 
                       'bg-slate-100 text-slate-800'
                     }`}>
                       {user.role}
@@ -397,7 +397,7 @@ const AdminView: React.FC<AdminViewProps> = ({ type, onSelectOrg, orgId }) => {
                     <div className="flex flex-wrap justify-end gap-2">
                       <button 
                         onClick={() => handleOpenEditUserModal(user)}
-                        className="text-indigo-600 hover:text-indigo-900 text-xs"
+                        className="text-sky-500 hover:text-sky-900 text-xs"
                       >
                         編集
                       </button>

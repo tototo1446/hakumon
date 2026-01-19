@@ -124,7 +124,7 @@ const RankDefinitionEditor: React.FC<RankDefinitionEditorProps> = ({
                       type="text"
                       value={rank.name}
                       onChange={(e) => handleRankNameChange(rank.id, e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none"
                       placeholder="例: ランク1（ビギナー）"
                     />
                   </div>
@@ -137,7 +137,7 @@ const RankDefinitionEditor: React.FC<RankDefinitionEditorProps> = ({
                       <button
                         type="button"
                         onClick={() => handleAddDescription(rank.id)}
-                        className="text-xs px-2 py-1 bg-indigo-50 text-indigo-600 rounded hover:bg-indigo-100 transition-colors"
+                        className="text-xs px-2 py-1 bg-sky-50 text-sky-500 rounded hover:bg-sky-100 transition-colors"
                       >
                         + 説明を追加
                       </button>
@@ -151,7 +151,7 @@ const RankDefinitionEditor: React.FC<RankDefinitionEditorProps> = ({
                             onChange={(e) =>
                               handleDescriptionChange(rank.id, descIndex, e.target.value)
                             }
-                            className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm"
+                            className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none text-sm"
                             placeholder="説明文を入力"
                           />
                           <button
@@ -181,7 +181,7 @@ const RankDefinitionEditor: React.FC<RankDefinitionEditorProps> = ({
             <button
               type="button"
               onClick={handleSave}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+              className="px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors"
             >
               保存
             </button>

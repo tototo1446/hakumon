@@ -119,7 +119,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSave, user, or
                     value={formData.name}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none"
                   />
                 </div>
 
@@ -135,7 +135,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSave, user, or
                     onChange={handleInputChange}
                     required
                     disabled={!!user} // 編集時はメールアドレス変更不可
-                    className={`w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none ${
+                    className={`w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none ${
                       user ? 'bg-slate-50 text-slate-500' : ''
                     }`}
                   />
@@ -156,7 +156,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSave, user, or
                     value={formData.role}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none"
                   >
                     <option value={Role.USER}>ユーザー</option>
                     <option value={Role.ORG_ADMIN}>法人管理者</option>
@@ -177,7 +177,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSave, user, or
                     onChange={handleInputChange}
                     required
                     disabled={!!orgId} // 法人専用ダッシュボードの場合は固定
-                    className={`w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none ${
+                    className={`w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none ${
                       orgId ? 'bg-slate-50 text-slate-500' : ''
                     }`}
                   >
@@ -207,7 +207,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSave, user, or
                       value={formData.department}
                       onChange={handleInputChange}
                       placeholder="例: IT企画部"
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none"
                     />
                   </div>
                   <div>
@@ -220,7 +220,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSave, user, or
                       value={formData.position}
                       onChange={handleInputChange}
                       placeholder="例: 部長"
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none"
                     />
                   </div>
                 </div>
@@ -238,7 +238,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSave, user, or
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                className="px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors"
               >
                 {user ? '更新' : '追加'}
               </button>

@@ -120,13 +120,13 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-900 p-4 sm:p-6">
+    <div className="min-h-screen flex items-center justify-center bg-white p-4 sm:p-6">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden p-6 sm:p-8 border-t-4 border-indigo-600">
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden p-6 sm:p-8 border-t-4 border-sky-400">
           <div className="text-center mb-8 sm:mb-10">
             {tenantOrg ? (
               <>
-                <div className="inline-block p-3 rounded-xl bg-indigo-50 text-indigo-600 mb-4">
+                <div className="inline-block p-3 rounded-xl bg-sky-50 text-sky-500 mb-4">
                   <span className="text-xl sm:text-2xl font-bold">🏢</span>
                 </div>
                 <div className="flex justify-center mb-3">
@@ -136,7 +136,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 <p className="text-slate-500 text-xs sm:text-sm">HAKUMON ログイン</p>
                 <button 
                   onClick={clearTenant}
-                  className="mt-2 text-[10px] text-slate-400 hover:text-indigo-600 font-bold uppercase tracking-widest"
+                  className="mt-2 text-[10px] text-slate-400 hover:text-sky-500 font-bold uppercase tracking-widest"
                 >
                   ← システム全体ログインに戻る
                 </button>
@@ -161,7 +161,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 value={accountId}
                 onChange={(e) => setAccountId(e.target.value)}
                 placeholder={tenantOrg ? tenantOrg.accountId : "管理者ID (admin)"}
-                className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all"
+                className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-sky-400 focus:border-transparent outline-none transition-all"
                 required
                 readOnly={!!tenantOrg} // 法人用ログインページでは読み取り専用
               />
@@ -178,14 +178,14 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-sm font-medium text-slate-700">パスワード</label>
-                <a href="#" className="text-xs text-indigo-600 hover:text-indigo-500">パスワードを忘れましたか？</a>
+                <a href="#" className="text-xs text-sky-500 hover:text-sky-400">パスワードを忘れましたか？</a>
               </div>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all"
+                className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-sky-400 focus:border-transparent outline-none transition-all"
                 required
               />
             </div>
@@ -198,7 +198,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
             <button
               type="submit"
-              className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-lg hover:shadow-indigo-500/30 transition-all duration-200 active:scale-95"
+              className="w-full py-3 px-4 bg-sky-400 hover:bg-sky-500 text-white font-bold rounded-lg shadow-lg hover:shadow-sky-300/30 transition-all duration-200 active:scale-95"
             >
               ログイン
             </button>

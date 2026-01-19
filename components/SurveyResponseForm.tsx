@@ -174,7 +174,7 @@ const SurveyResponseForm: React.FC<SurveyResponseFormProps> = ({
                   value={option.value}
                   checked={answer === option.value}
                   onChange={(e) => handleAnswerChange(question.id, e.target.value, question.type)}
-                  className="text-indigo-600 focus:ring-indigo-500"
+                  className="text-sky-500 focus:ring-sky-500"
                 />
                 <span className="text-sm text-slate-700">{option.label}</span>
               </label>
@@ -194,7 +194,7 @@ const SurveyResponseForm: React.FC<SurveyResponseFormProps> = ({
                   value={option.value}
                   checked={checkedValues.includes(option.value)}
                   onChange={(e) => handleAnswerChange(question.id, e.target.value, question.type)}
-                  className="text-indigo-600 focus:ring-indigo-500 rounded"
+                  className="text-sky-500 focus:ring-sky-500 rounded"
                 />
                 <span className="text-sm text-slate-700">{option.label}</span>
               </label>
@@ -212,7 +212,7 @@ const SurveyResponseForm: React.FC<SurveyResponseFormProps> = ({
               onChange={(e) => handleAnswerChange(question.id, e.target.value, question.type)}
               placeholder={question.placeholder || '短文回答'}
               maxLength={question.maxLength}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none"
             />
             {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
           </div>
@@ -227,7 +227,7 @@ const SurveyResponseForm: React.FC<SurveyResponseFormProps> = ({
               placeholder={question.placeholder || '長文回答'}
               rows={4}
               maxLength={question.maxLength}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none resize-none"
+              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none resize-none"
             />
             {question.maxLength && (
               <p className="text-xs text-slate-500 mt-1">
@@ -252,7 +252,7 @@ const SurveyResponseForm: React.FC<SurveyResponseFormProps> = ({
                       value={option.value}
                       checked={answer === option.value}
                       onChange={(e) => handleAnswerChange(question.id, e.target.value, question.type)}
-                      className="text-indigo-600 focus:ring-indigo-500"
+                      className="text-sky-500 focus:ring-sky-500"
                     />
                     <span className="font-medium text-sm text-slate-700">{option.label}</span>
                   </label>
@@ -279,10 +279,10 @@ const SurveyResponseForm: React.FC<SurveyResponseFormProps> = ({
     <div className="max-w-3xl mx-auto p-4 sm:p-6">
       <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
         {/* アンケートヘッダー */}
-        <div className="bg-indigo-600 rounded-t-lg p-4 sm:p-6 text-white">
+        <div className="bg-sky-500 rounded-t-lg p-4 sm:p-6 text-white">
           <h2 className="text-xl sm:text-2xl font-bold mb-2">{survey.title}</h2>
           {survey.description && (
-            <p className="text-sm sm:text-base text-indigo-100">{survey.description}</p>
+            <p className="text-sm sm:text-base text-sky-100">{survey.description}</p>
           )}
         </div>
 
@@ -322,7 +322,7 @@ const SurveyResponseForm: React.FC<SurveyResponseFormProps> = ({
           )}
           <button
             type="submit"
-            className="w-full sm:w-auto px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+            className="w-full sm:w-auto px-6 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors font-medium"
           >
             送信する
           </button>

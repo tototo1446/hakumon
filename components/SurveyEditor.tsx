@@ -217,7 +217,7 @@ const SurveyEditor: React.FC<SurveyEditorProps> = ({ survey, onSave, onCancel })
         onClick={() => handleSelectQuestion(index)}
         className={`bg-white rounded-lg border-2 p-6 mb-4 cursor-pointer transition-all ${
           isSelected
-            ? 'border-indigo-500 shadow-lg'
+            ? 'border-sky-500 shadow-lg'
             : 'border-slate-200 hover:border-slate-300'
         }`}
       >
@@ -291,7 +291,7 @@ const SurveyEditor: React.FC<SurveyEditorProps> = ({ survey, onSave, onCancel })
             <div className="space-y-2">
               {question.options.map((option) => (
                 <label key={option.id} className="flex items-center gap-2">
-                  <input type="radio" name={`preview-${question.id}`} disabled className="text-indigo-600" />
+                  <input type="radio" name={`preview-${question.id}`} disabled className="text-sky-500" />
                   <span className="text-sm text-slate-700">{option.label}</span>
                 </label>
               ))}
@@ -301,7 +301,7 @@ const SurveyEditor: React.FC<SurveyEditorProps> = ({ survey, onSave, onCancel })
             <div className="space-y-2">
               {question.options.map((option) => (
                 <label key={option.id} className="flex items-center gap-2">
-                  <input type="checkbox" disabled className="text-indigo-600" />
+                  <input type="checkbox" disabled className="text-sky-500" />
                   <span className="text-sm text-slate-700">{option.label}</span>
                 </label>
               ))}
@@ -350,18 +350,18 @@ const SurveyEditor: React.FC<SurveyEditorProps> = ({ survey, onSave, onCancel })
       <div className="flex-1 overflow-y-auto p-8">
         <div className="max-w-3xl mx-auto">
           {/* ヘッダー */}
-          <div className="bg-indigo-600 rounded-t-lg p-6 mb-4">
+          <div className="bg-sky-400 rounded-t-lg p-6 mb-4">
             <input
               type="text"
               value={editedSurvey.title}
               onChange={(e) => handleUpdateSurvey({ title: e.target.value })}
-              className="w-full text-2xl font-bold text-white bg-transparent border-none outline-none placeholder-indigo-200"
+              className="w-full text-2xl font-bold text-white bg-transparent border-none outline-none placeholder-blue-200"
               placeholder="アンケートタイトル"
             />
             <textarea
               value={editedSurvey.description || ''}
               onChange={(e) => handleUpdateSurvey({ description: e.target.value })}
-              className="w-full mt-2 text-white bg-transparent border-none outline-none placeholder-indigo-200 resize-none"
+              className="w-full mt-2 text-white bg-transparent border-none outline-none placeholder-blue-200 resize-none"
               placeholder="説明を入力してください"
               rows={2}
             />
@@ -375,7 +375,7 @@ const SurveyEditor: React.FC<SurveyEditorProps> = ({ survey, onSave, onCancel })
           {/* 質問追加ボタン */}
           <button
             onClick={handleAddQuestion}
-            className="w-full py-4 border-2 border-dashed border-slate-300 rounded-lg text-slate-500 hover:border-indigo-400 hover:text-indigo-600 transition-colors flex items-center justify-center gap-2"
+            className="w-full py-4 border-2 border-dashed border-slate-300 rounded-lg text-slate-500 hover:border-sky-400 hover:text-sky-500 transition-colors flex items-center justify-center gap-2"
           >
             <span className="text-xl">+</span>
             <span>質問を追加</span>
@@ -398,7 +398,7 @@ const SurveyEditor: React.FC<SurveyEditorProps> = ({ survey, onSave, onCancel })
                   type="text"
                   value={questionFormData.title || ''}
                   onChange={(e) => setQuestionFormData({ ...questionFormData, title: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
                   placeholder="質問内容を入力"
                 />
               </div>
@@ -418,7 +418,7 @@ const SurveyEditor: React.FC<SurveyEditorProps> = ({ survey, onSave, onCancel })
                       rankDescriptions: newType === 'rank' ? (questionFormData.rankDescriptions || {}) : undefined,
                     });
                   }}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
                 >
                   <option value="radio">ラジオボタン</option>
                   <option value="checkbox">チェックボックス</option>
@@ -434,7 +434,7 @@ const SurveyEditor: React.FC<SurveyEditorProps> = ({ survey, onSave, onCancel })
                     type="checkbox"
                     checked={questionFormData.required ?? false}
                     onChange={(e) => setQuestionFormData({ ...questionFormData, required: e.target.checked })}
-                    className="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500"
+                    className="w-4 h-4 text-sky-500 border-slate-300 rounded focus:ring-sky-500"
                   />
                   必須項目にする
                 </label>
@@ -450,7 +450,7 @@ const SurveyEditor: React.FC<SurveyEditorProps> = ({ survey, onSave, onCancel })
                       type="text"
                       value={questionFormData.placeholder || ''}
                       onChange={(e) => setQuestionFormData({ ...questionFormData, placeholder: e.target.value })}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
                     />
                   </div>
                   {questionFormData.type === 'textarea' && (
@@ -465,7 +465,7 @@ const SurveyEditor: React.FC<SurveyEditorProps> = ({ survey, onSave, onCancel })
                           ...questionFormData,
                           maxLength: e.target.value ? parseInt(e.target.value) : undefined,
                         })}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
                       />
                     </div>
                   )}
@@ -480,7 +480,7 @@ const SurveyEditor: React.FC<SurveyEditorProps> = ({ survey, onSave, onCancel })
                     </label>
                     <button
                       onClick={handleAddOption}
-                      className="text-xs px-2 py-1 bg-indigo-50 text-indigo-600 rounded hover:bg-indigo-100"
+                      className="text-xs px-2 py-1 bg-blue-50 text-sky-500 rounded hover:bg-sky-100"
                     >
                       + 追加
                     </button>
@@ -493,7 +493,7 @@ const SurveyEditor: React.FC<SurveyEditorProps> = ({ survey, onSave, onCancel })
                           value={option.label}
                           onChange={(e) => handleUpdateOption(optIndex, 'label', e.target.value)}
                           placeholder="選択肢"
-                          className="flex-1 px-2 py-1.5 border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="flex-1 px-2 py-1.5 border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
                         />
                         <button
                           onClick={() => handleDeleteOption(optIndex)}
@@ -527,7 +527,7 @@ const SurveyEditor: React.FC<SurveyEditorProps> = ({ survey, onSave, onCancel })
                                   value={desc}
                                   onChange={(e) => handleUpdateRankDescription(rank, descIndex, e.target.value)}
                                   placeholder="説明文"
-                                  className="flex-1 px-2 py-1 border border-slate-300 rounded text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                  className="flex-1 px-2 py-1 border border-slate-300 rounded text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
                                 />
                                 <button
                                   onClick={() => handleDeleteRankDescription(rank, descIndex)}
@@ -539,7 +539,7 @@ const SurveyEditor: React.FC<SurveyEditorProps> = ({ survey, onSave, onCancel })
                             ))}
                             <button
                               onClick={() => handleAddRankDescription(rank)}
-                              className="text-xs px-2 py-1 bg-indigo-50 text-indigo-600 rounded hover:bg-indigo-100"
+                              className="text-xs px-2 py-1 bg-blue-50 text-sky-500 rounded hover:bg-sky-100"
                             >
                               + 説明を追加
                             </button>
@@ -554,7 +554,7 @@ const SurveyEditor: React.FC<SurveyEditorProps> = ({ survey, onSave, onCancel })
               <div className="flex gap-2 pt-4 border-t border-slate-200">
                 <button
                   onClick={handleSaveQuestion}
-                  className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm"
+                  className="flex-1 px-4 py-2 bg-sky-400 text-white rounded-lg hover:bg-sky-500 transition-colors text-sm"
                 >
                   保存
                 </button>
@@ -579,7 +579,7 @@ const SurveyEditor: React.FC<SurveyEditorProps> = ({ survey, onSave, onCancel })
             <div className="mt-6 space-y-2">
               <button
                 onClick={handleAddQuestion}
-                className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm"
+                className="w-full px-4 py-2 bg-sky-400 text-white rounded-lg hover:bg-sky-500 transition-colors text-sm"
               >
                 + 新しい質問を追加
               </button>
@@ -592,7 +592,7 @@ const SurveyEditor: React.FC<SurveyEditorProps> = ({ survey, onSave, onCancel })
           <div className="flex gap-2">
             <button
               onClick={() => onSave(editedSurvey)}
-              className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+              className="flex-1 px-4 py-2 bg-sky-400 text-white rounded-lg hover:bg-sky-500 transition-colors font-medium"
             >
               保存して終了
             </button>

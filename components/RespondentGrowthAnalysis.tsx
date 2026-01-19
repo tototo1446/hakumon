@@ -601,7 +601,7 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
             <select
               value={viewingOrg?.id || ''}
               onChange={handleOrgChange}
-              className="w-full sm:w-auto px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none bg-white text-slate-900"
+              className="w-full sm:w-auto px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none bg-white text-slate-900"
             >
               <option value="">すべての法人</option>
               {organizations.map(org => (
@@ -640,7 +640,7 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
                 type="month"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none bg-white text-slate-900"
+                className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none bg-white text-slate-900"
               />
             </div>
             <div className="flex items-center gap-2">
@@ -650,7 +650,7 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 min={startDate}
-                className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none bg-white text-slate-900"
+                className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none bg-white text-slate-900"
               />
             </div>
             <button
@@ -682,7 +682,7 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
                         ...prev,
                         department: e.target.value || ''
                       }))}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none bg-white text-slate-900"
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none bg-white text-slate-900"
                     >
                       <option value="">すべて</option>
                       {getAttributeOptions('department').map(option => (
@@ -702,7 +702,7 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
                         ...prev,
                         position: e.target.value || ''
                       }))}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none bg-white text-slate-900"
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none bg-white text-slate-900"
                     >
                       <option value="">すべて</option>
                       {getAttributeOptions('position').map(option => (
@@ -750,7 +750,7 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
               </div>
               <div className="text-xs text-slate-600">
                 <p className="font-medium">
-                  表示中の回答数: <span className="text-indigo-600 font-bold">{filteredResponses.length}</span>件
+                  表示中の回答数: <span className="text-sky-500 font-bold">{filteredResponses.length}</span>件
                   {orgResponses.length !== filteredResponses.length && (
                     <span className="text-slate-400 ml-1">
                       (全{orgResponses.length}件中)
@@ -764,8 +764,8 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
       </div>
 
       {isSuperAdmin && viewingOrg && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p className="text-sm text-blue-800">
+        <div className="bg-sky-50 border border-sky-200 rounded-lg p-4">
+          <p className="text-sm text-sky-800">
             <strong>{viewingOrg.name}</strong> のデータを表示中
           </p>
         </div>
@@ -774,8 +774,8 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
       {/* 管理者用：すべての法人が選択されている場合、法人ごとの成長率分析を表示 */}
       {isSuperAdmin && !viewingOrg && allOrganizations.length > 0 && (
         <div className="space-y-6">
-          <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
-            <p className="text-sm text-indigo-800">
+          <div className="bg-sky-50 border border-sky-200 rounded-lg p-4">
+            <p className="text-sm text-sky-800">
               <strong>すべての法人</strong> の成長率分析を表示中
             </p>
           </div>
@@ -845,7 +845,7 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
                 .slice(-6); // 直近6ヶ月
 
               return (
-                <div key={orgItem.id} className="bg-white border border-slate-200 rounded-xl p-4 sm:p-6 shadow-sm hover:border-indigo-300 transition-colors">
+                <div key={orgItem.id} className="bg-white border border-slate-200 rounded-xl p-4 sm:p-6 shadow-sm hover:border-sky-300 transition-colors">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
                     <div className="flex items-center gap-3">
                       {orgItem.logo ? (
@@ -872,7 +872,7 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
                     <div className="flex items-center gap-4">
                       <div className="text-right">
                         <p className="text-xs text-slate-600 mb-1">平均スコア</p>
-                        <p className="text-2xl font-bold text-indigo-600">{latestScore}点</p>
+                        <p className="text-2xl font-bold text-sky-500">{latestScore}点</p>
                       </div>
                       <div className="text-right">
                         <p className="text-xs text-slate-600 mb-1">成長率</p>
@@ -882,7 +882,7 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
                       </div>
                       <button
                         onClick={() => onSelectOrg?.(orgItem)}
-                        className="px-3 py-2 text-sm text-indigo-600 hover:text-indigo-800 border border-indigo-300 rounded-lg hover:bg-indigo-50 transition-colors whitespace-nowrap"
+                        className="px-3 py-2 text-sm text-sky-500 hover:text-sky-800 border border-sky-300 rounded-lg hover:bg-sky-50 transition-colors whitespace-nowrap"
                       >
                         詳細を見る
                       </button>
@@ -1014,8 +1014,8 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
         <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-              <span className="text-blue-600 text-lg sm:text-xl">↑</span>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-sky-100 flex items-center justify-center flex-shrink-0">
+              <span className="text-sky-500 text-lg sm:text-xl">↑</span>
             </div>
             <div>
               <p className="text-xs sm:text-sm text-slate-600">ランクアップ</p>
@@ -1117,7 +1117,7 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
                   </div>
                   <div className="flex items-center gap-2">
                     {change.changeType === 'new' && (
-                      <span className="px-2 py-1 text-xs font-medium bg-indigo-100 text-indigo-700 rounded">
+                      <span className="px-2 py-1 text-xs font-medium bg-sky-100 text-sky-700 rounded">
                         新規
                       </span>
                     )}
@@ -1153,7 +1153,7 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
                 onClick={() => setSelectedRespondent(selectedRespondent === name ? null : name)}
                 className={`px-4 py-2 rounded-lg text-sm transition-colors ${
                   selectedRespondent === name
-                    ? 'bg-indigo-600 text-white'
+                    ? 'bg-sky-500 text-white'
                     : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
               >
@@ -1214,30 +1214,30 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
         <div className="space-y-6">
           {/* スコアサマリーカード */}
           {growthRate !== null && (
-            <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-6 rounded-xl border border-indigo-200">
+            <div className="bg-gradient-to-r from-sky-50 to-sky-50 p-6 rounded-xl border border-sky-200">
               <h4 className="text-md font-semibold text-slate-700 mb-4">
                 {selectedRespondent} の成長サマリー
               </h4>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div className="bg-white p-4 rounded-lg border border-indigo-100">
+                <div className="bg-white p-4 rounded-lg border border-sky-100">
                   <p className="text-xs text-slate-600 mb-1">初回スコア</p>
                   <p className="text-2xl font-bold text-slate-800">
                     {respondentHistory[0].overallScore}点
                   </p>
                 </div>
-                <div className="bg-white p-4 rounded-lg border border-indigo-100">
+                <div className="bg-white p-4 rounded-lg border border-sky-100">
                   <p className="text-xs text-slate-600 mb-1">最新スコア</p>
                   <p className="text-2xl font-bold text-slate-800">
                     {respondentHistory[respondentHistory.length - 1].overallScore}点
                   </p>
                 </div>
-                <div className="bg-white p-4 rounded-lg border border-indigo-100">
+                <div className="bg-white p-4 rounded-lg border border-sky-100">
                   <p className="text-xs text-slate-600 mb-1">成長率</p>
                   <p className={`text-2xl font-bold ${growthRate >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                     {growthRate >= 0 ? '+' : ''}{growthRate}%
                   </p>
                 </div>
-                <div className="bg-white p-4 rounded-lg border border-indigo-100">
+                <div className="bg-white p-4 rounded-lg border border-sky-100">
                   <p className="text-xs text-slate-600 mb-1">回答回数</p>
                   <p className="text-2xl font-bold text-slate-800">
                     {respondentHistory.length}回
