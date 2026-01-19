@@ -1,6 +1,6 @@
 {
-  "name": "EffiQ",
-  "description": "EffiQ - A multi-tenant dashboard system for managing and visualizing AI literacy levels across different corporations, featuring RBAC and Gemini-powered improvement insights.",
+  "name": "HAKUMON",
+  "description": "HAKUMON - A multi-tenant dashboard system for managing and visualizing AI literacy levels across different corporations, featuring RBAC and Gemini-powered improvement insights.",
   "requestFramePermissions": [
     "camera"
   ]

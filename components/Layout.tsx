@@ -50,7 +50,7 @@ const Layout: React.FC<LayoutProps> = ({ children, org, isSuperAdmin, onLogout, 
       }`}>
         <div className="p-6 border-b border-slate-200">
           <div className="flex items-center gap-3 mb-2">
-            <img src="/EffiQ-logo.png" alt="EffiQ" className="h-8 w-auto" />
+            <img src="/HAKUMON logo.png" alt="HAKUMON" className="h-8 w-auto" />
           </div>
           <p className="text-xs text-slate-500 mt-1">Enterprise Dashboard</p>
         </div>
