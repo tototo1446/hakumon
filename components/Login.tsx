@@ -65,31 +65,15 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       return;
     }
 
-    // 管理者用ログインページの場合（tenantOrgが設定されていない）
-    // 管理者ID（admin）のみ受け付ける
-    if (accountId === 'admin' && password === 'admin') {
-      // システム管理者用のダミー組織を作成
-      const adminOrg: Organization = {
-        id: 'system-admin',
-        slug: 'system',
-        name: 'システム管理者',
-        createdAt: new Date().toISOString(),
-        memberCount: 0,
-        avgScore: 0,
-        accountId: 'admin',
-        password: 'admin',
-      };
-      onLogin(adminOrg, true);
-      return;
-    }
-
     // 管理者用ログインページでアカウントIDが入力された場合、アカウントIDで法人を検索
     try {
       const org = await getOrganizationByAccountId(accountId);
       if (org) {
         // パスワードチェック
         if (org.password === password || password === 'demo123') {
-          onLogin(org, false);
+          // システム管理者（account_id=hakumon または slug=system）の場合は isSuperAdmin
+          const isSuperAdmin = org.accountId === 'hakumon' || org.slug === 'system';
+          onLogin(org, isSuperAdmin);
         } else {
           setError('パスワードが正しくありません。');
         }
@@ -113,12 +97,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     setError('アカウントIDまたはパスワードが正しくありません。');
   };
 
-  const clearTenant = () => {
-    const url = new URL(window.location.href);
-    url.searchParams.delete('tenant');
-    window.location.href = url.toString();
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-white p-4 sm:p-6">
       <div className="w-full max-w-md">
@@ -134,12 +112,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 </div>
                 <h1 className="text-xl sm:text-2xl font-bold text-slate-900 mb-1">{tenantOrg.name}</h1>
                 <p className="text-slate-500 text-xs sm:text-sm">HAKUMON ログイン</p>
-                <button 
-                  onClick={clearTenant}
-                  className="mt-2 text-[10px] text-slate-400 hover:text-sky-500 font-bold uppercase tracking-widest"
-                >
-                  ← システム全体ログインに戻る
-                </button>
               </>
             ) : (
               <>
@@ -160,7 +132,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 type="text"
                 value={accountId}
                 onChange={(e) => setAccountId(e.target.value)}
-                placeholder={tenantOrg ? tenantOrg.accountId : "管理者ID (admin)"}
+                placeholder={tenantOrg ? tenantOrg.accountId : "管理者ID (hakumon)"}
                 className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-sky-400 focus:border-transparent outline-none transition-all"
                 required
                 readOnly={!!tenantOrg} // 法人用ログインページでは読み取り専用
@@ -171,7 +143,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 </p>
               ) : (
                 <p className="mt-1 text-xs text-slate-500">
-                  管理者用ログインページでは管理者ID（admin）のみ使用できます
+                  管理者用ログインページでは管理者ID（hakumon）を使用します
                 </p>
               )}
             </div>
@@ -203,29 +175,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               ログイン
             </button>
           </form>
-
-          <div className="mt-10 pt-8 border-t border-slate-100">
-            <p className="text-center text-xs text-slate-400 font-medium uppercase tracking-widest mb-4">Demo Accounts</p>
-            <div className="grid grid-cols-1 gap-3">
-              {tenantOrg ? (
-                // 法人用ログインページ：その法人のアカウントのみ
-                <button
-                  onClick={() => { setAccountId(tenantOrg.accountId); setPassword('demo123'); }}
-                  className="text-[10px] py-2 px-3 bg-slate-50 rounded-md border border-slate-200 text-slate-600 hover:bg-slate-100"
-                >
-                  {tenantOrg.name}
-                </button>
-              ) : (
-                // 管理者用ログインページ：管理者アカウントのみ
-                <button
-                  onClick={() => { setAccountId('admin'); setPassword('admin'); }}
-                  className="text-[10px] py-2 px-3 bg-slate-50 rounded-md border border-slate-200 text-slate-600 hover:bg-slate-100"
-                >
-                  System Admin
-                </button>
-              )}
-            </div>
-          </div>
         </div>
         <p className="mt-8 text-center text-slate-400 text-sm">
           &copy; 2024 HAKUMON
