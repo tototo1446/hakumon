@@ -14,14 +14,19 @@ export function saveResponse(response: SurveyResponse): void {
 }
 
 /**
- * 法人別の回答一覧を取得
+ * 法人別の回答一覧を取得（デモデータは除外）
  */
 export function getResponsesByOrg(orgId: string): SurveyResponse[] {
   const key = `${STORAGE_KEY_PREFIX}${orgId}`;
   const data = localStorage.getItem(key);
   if (!data) return [];
   try {
-    return JSON.parse(data) as SurveyResponse[];
+    const responses = JSON.parse(data) as SurveyResponse[];
+    // デモデータをフィルタリングして除外
+    const demoNames = ['山田 太郎', '佐藤 花子', '鈴木 一郎'];
+    return responses.filter(response => {
+      return !demoNames.includes(response.respondentName) && !response.id.startsWith('demo-response-');
+    });
   } catch {
     return [];
   }
@@ -36,9 +41,15 @@ export function getResponsesBySurvey(surveyId: string, orgId: string): SurveyRes
 }
 
 /**
- * 回答者別の回答一覧を取得
+ * 回答者別の回答一覧を取得（デモデータは除外）
  */
 export function getResponsesByRespondent(respondentName: string, orgId: string): SurveyResponse[] {
+  // デモデータの回答者名の場合は空配列を返す
+  const demoNames = ['山田 太郎', '佐藤 花子', '鈴木 一郎'];
+  if (demoNames.includes(respondentName)) {
+    return [];
+  }
+  
   const allResponses = getResponsesByOrg(orgId);
   return allResponses.filter(response => response.respondentName === respondentName);
 }
@@ -126,7 +137,7 @@ export async function getResponsesBySurveyFromSupabase(surveyId: string, orgId: 
     }
 
     // データベースの形式をアプリケーションの形式に変換
-    return data.map((row: any) => ({
+    const responses = data.map((row: any) => ({
       id: row.id,
       surveyId: row.survey_id,
       respondentName: row.respondent_name || '匿名',
@@ -134,6 +145,12 @@ export async function getResponsesBySurveyFromSupabase(surveyId: string, orgId: 
       answers: row.answers as Answer[],
       submittedAt: row.submitted_at,
     }));
+
+    // デモデータをフィルタリングして除外
+    const demoNames = ['山田 太郎', '佐藤 花子', '鈴木 一郎'];
+    return responses.filter(response => {
+      return !demoNames.includes(response.respondentName) && !response.id.startsWith('demo-response-');
+    });
   } catch (error) {
     console.error('回答データの取得中にエラーが発生しました:', error);
     return [];
@@ -159,7 +176,7 @@ export async function getResponsesByOrgFromSupabase(orgId: string): Promise<Surv
     if (!data) return [];
 
     // データベースの形式をアプリケーションの形式に変換
-    return data.map((row: any) => ({
+    const responses = data.map((row: any) => ({
       id: row.id,
       surveyId: row.survey_id,
       respondentName: row.respondent_name || '匿名',
@@ -167,9 +184,75 @@ export async function getResponsesByOrgFromSupabase(orgId: string): Promise<Surv
       answers: row.answers as Answer[],
       submittedAt: row.submitted_at,
     }));
+
+    // デモデータをフィルタリングして除外
+    const demoNames = ['山田 太郎', '佐藤 花子', '鈴木 一郎'];
+    return responses.filter(response => {
+      return !demoNames.includes(response.respondentName) && !response.id.startsWith('demo-response-');
+    });
   } catch (error) {
     console.error('回答データの取得中にエラーが発生しました:', error);
     return [];
+  }
+}
+
+/**
+ * Supabaseからデモデータを削除
+ */
+export async function deleteDemoResponsesFromSupabase(orgId: string): Promise<void> {
+  try {
+    const demoNames = ['山田 太郎', '佐藤 花子', '鈴木 一郎'];
+    
+    // デモデータの回答者名でフィルタリングして削除
+    for (const name of demoNames) {
+      const { data, error } = await supabase
+        .from('survey_responses')
+        .select('id')
+        .eq('organization_id', orgId)
+        .eq('respondent_name', name);
+
+      if (error) {
+        console.error(`デモデータ（${name}）の取得に失敗しました:`, error);
+        continue;
+      }
+
+      if (data && data.length > 0) {
+        const ids = data.map(row => row.id);
+        const { error: deleteError } = await supabase
+          .from('survey_responses')
+          .delete()
+          .in('id', ids);
+
+        if (deleteError) {
+          console.error(`デモデータ（${name}）の削除に失敗しました:`, deleteError);
+        } else {
+          console.log(`デモデータ（${name}）を削除しました: ${ids.length}件`);
+        }
+      }
+    }
+
+    // demo-response-で始まるIDも削除
+    const { data: demoData, error: demoError } = await supabase
+      .from('survey_responses')
+      .select('id')
+      .eq('organization_id', orgId)
+      .like('id', 'demo-response-%');
+
+    if (!demoError && demoData && demoData.length > 0) {
+      const ids = demoData.map(row => row.id);
+      const { error: deleteError } = await supabase
+        .from('survey_responses')
+        .delete()
+        .in('id', ids);
+
+      if (deleteError) {
+        console.error('デモデータ（demo-response-*）の削除に失敗しました:', deleteError);
+      } else {
+        console.log(`デモデータ（demo-response-*）を削除しました: ${ids.length}件`);
+      }
+    }
+  } catch (error) {
+    console.error('デモデータの削除中にエラーが発生しました:', error);
   }
 }
 
@@ -178,6 +261,12 @@ export async function getResponsesByOrgFromSupabase(orgId: string): Promise<Surv
  */
 export async function getResponsesByRespondentFromSupabase(respondentName: string, orgId: string): Promise<SurveyResponse[]> {
   try {
+    // デモデータの回答者名の場合は空配列を返す
+    const demoNames = ['山田 太郎', '佐藤 花子', '鈴木 一郎'];
+    if (demoNames.includes(respondentName)) {
+      return [];
+    }
+
     const { data, error } = await supabase
       .from('survey_responses')
       .select('*')
@@ -193,7 +282,7 @@ export async function getResponsesByRespondentFromSupabase(respondentName: strin
     if (!data) return [];
 
     // データベースの形式をアプリケーションの形式に変換
-    return data.map((row: any) => ({
+    const responses = data.map((row: any) => ({
       id: row.id,
       surveyId: row.survey_id,
       respondentName: row.respondent_name || '匿名',
@@ -201,6 +290,11 @@ export async function getResponsesByRespondentFromSupabase(respondentName: strin
       answers: row.answers as Answer[],
       submittedAt: row.submitted_at,
     }));
+
+    // デモデータをフィルタリングして除外（念のため）
+    return responses.filter(response => {
+      return !response.id.startsWith('demo-response-');
+    });
   } catch (error) {
     console.error('回答データの取得中にエラーが発生しました:', error);
     return [];

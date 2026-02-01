@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar, Cell } from 'recharts';
 import { Organization, SurveyResponse, Answer, Survey } from '../types';
 import { LITERACY_DIMENSIONS } from '../constants';
-import { getResponsesByOrg, getResponsesByRespondent, saveResponse, getResponsesByOrgFromSupabase, getResponsesByRespondentFromSupabase } from '../services/surveyResponseService';
+import { getResponsesByOrg, getResponsesByRespondent, saveResponse, getResponsesByOrgFromSupabase, getResponsesByRespondentFromSupabase, deleteDemoResponsesFromSupabase } from '../services/surveyResponseService';
 import { calculateScoreFromResponse, calculateOverallScore, calculateOrgAverageScore } from '../services/literacyScoreService';
 import { getRankDefinition } from '../services/rankDefinitionService';
 import { generateDemoResponses } from '../services/demoDataService';
@@ -232,26 +232,30 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Supabaseから回答データを取得
+        // Supabaseから回答データを取得（デモデータは自動的に除外される）
         const supabaseResponses = await getResponsesByOrgFromSupabase(targetOrgId);
         
         if (supabaseResponses.length > 0) {
           setResponses(supabaseResponses);
+          // Supabaseから取得したデータにデモデータが含まれている場合は削除
+          await deleteDemoResponsesFromSupabase(targetOrgId);
         } else {
           // Supabaseにデータがない場合はlocalStorageから取得を試みる
           const localStorageResponses = getResponsesByOrg(targetOrgId);
-          if (localStorageResponses.length > 0) {
-            setResponses(localStorageResponses);
+          // デモデータをフィルタリングして除外
+          const filteredResponses = localStorageResponses.filter(response => {
+            const demoNames = ['山田 太郎', '佐藤 花子', '鈴木 一郎'];
+            return !demoNames.includes(response.respondentName) && !response.id.startsWith('demo-response-');
+          });
+          
+          if (filteredResponses.length > 0) {
+            setResponses(filteredResponses);
+            // フィルタリングしたデータを保存（デモデータを削除）
+            const key = `survey_responses_${targetOrgId}`;
+            localStorage.setItem(key, JSON.stringify(filteredResponses));
           } else {
-            // データが存在しない場合、初期デモデータを生成
-            const demoResponses = generateDemoResponses(targetOrgId);
-            // 各回答を保存
-            demoResponses.forEach(response => {
-              saveResponse(response);
-            });
-            // 保存したデータを取得
-            const allResponses = getResponsesByOrg(targetOrgId);
-            setResponses(allResponses);
+            // データが存在しない場合は空配列を設定（デモデータは生成しない）
+            setResponses([]);
           }
         }
         
@@ -266,9 +270,18 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
         }
       } catch (error) {
         console.error('データの取得に失敗しました:', error);
-        // エラー時はlocalStorageから取得
+        // エラー時はlocalStorageから取得（デモデータを除外）
         const localStorageResponses = getResponsesByOrg(targetOrgId);
-        setResponses(localStorageResponses);
+        const demoNames = ['山田 太郎', '佐藤 花子', '鈴木 一郎'];
+        const filteredResponses = localStorageResponses.filter(response => {
+          return !demoNames.includes(response.respondentName) && !response.id.startsWith('demo-response-');
+        });
+        setResponses(filteredResponses);
+        // フィルタリングしたデータを保存（デモデータを削除）
+        if (filteredResponses.length !== localStorageResponses.length) {
+          const key = `survey_responses_${targetOrgId}`;
+          localStorage.setItem(key, JSON.stringify(filteredResponses));
+        }
         const localStorageSurveys = getSurveysByOrg(targetOrgId);
         setSurveys(localStorageSurveys);
       }
@@ -279,7 +292,8 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
     };
     
     loadData();
-  }, [targetOrgId, viewingOrg, org]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [targetOrgId]);
 
   // 管理者用：全法人のデータを取得（「すべての法人」が選択されている場合）
   useEffect(() => {
@@ -289,17 +303,23 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
           const orgs = await getOrganizations();
           setAllOrganizations(orgs.length > 0 ? orgs : organizations);
 
-          // 全法人の回答データを取得
+          // 全法人の回答データを取得（デモデータは自動的に除外される）
           const allResponses: SurveyResponse[] = [];
           for (const orgItem of (orgs.length > 0 ? orgs : organizations)) {
             try {
               const orgResponses = await getResponsesByOrgFromSupabase(orgItem.id);
               allResponses.push(...orgResponses);
+              // Supabaseから取得したデータにデモデータが含まれている場合は削除
+              await deleteDemoResponsesFromSupabase(orgItem.id);
             } catch (error) {
               console.error(`法人 ${orgItem.name} の回答データ取得に失敗:`, error);
-              // エラー時はlocalStorageから取得を試みる
+              // エラー時はlocalStorageから取得を試みる（デモデータを除外）
               const localStorageResponses = getResponsesByOrg(orgItem.id);
-              allResponses.push(...localStorageResponses);
+              const demoNames = ['山田 太郎', '佐藤 花子', '鈴木 一郎'];
+              const filteredResponses = localStorageResponses.filter(response => {
+                return !demoNames.includes(response.respondentName) && !response.id.startsWith('demo-response-');
+              });
+              allResponses.push(...filteredResponses);
             }
           }
           setAllOrgResponses(allResponses);
@@ -315,7 +335,8 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
       setAllOrganizations([]);
       setAllOrgResponses([]);
     }
-  }, [isSuperAdmin, viewingOrg, organizations]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSuperAdmin, viewingOrg?.id, organizations.length]);
 
   // 回答者一覧を取得（フィルタリング後のデータから）
   const respondents = useMemo(() => {

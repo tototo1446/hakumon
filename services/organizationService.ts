@@ -76,6 +76,7 @@ export async function getOrganizations(): Promise<Organization[]> {
         // account_idカラムが存在する場合はそれを使用、なければslugを使用（後方互換性）
         accountId: (org as any).account_id || org.slug,
         password: (org as any).password, // パスワードを取得
+        email: (org as any).email, // メールアドレスを取得
       };
     }));
 
@@ -168,6 +169,7 @@ export async function getOrganizationById(id: string): Promise<Organization | nu
         avgScore: Math.round(avgScore),
         accountId: (data as any).account_id || data.slug,
         password: (data as any).password, // パスワードを取得
+        email: (data as any).email, // メールアドレスを取得
       };
   } catch (error) {
     console.error('法人の取得に失敗しました:', error);
@@ -247,6 +249,7 @@ export async function getOrganizationBySlug(slug: string): Promise<Organization 
         avgScore: Math.round(avgScore),
         accountId: (data as any).account_id || data.slug,
         password: (data as any).password, // パスワードを取得
+        email: (data as any).email, // メールアドレスを取得
       };
   } catch (error) {
     console.error('法人の取得に失敗しました:', error);
@@ -274,6 +277,7 @@ export async function createOrganization(
         name: orgData.name,
         account_id: orgData.accountId, // アカウントIDを保存
         password: orgData.password, // パスワードを保存
+        email: orgData.email, // メールアドレスを保存
       })
       .select()
       .single();
@@ -330,6 +334,7 @@ export async function updateOrganization(
     if (orgData.slug) updateData.slug = orgData.slug;
     if (orgData.accountId) updateData.account_id = orgData.accountId;
     if (orgData.password) updateData.password = orgData.password; // パスワードを更新
+    if (orgData.email !== undefined) updateData.email = orgData.email; // メールアドレスを更新（空文字列も許可）
 
     const { data, error } = await supabase
       .from('organizations')
@@ -393,6 +398,7 @@ export async function updateOrganization(
         avgScore: Math.round(avgScore),
         accountId: (data as any).account_id || data.slug,
         password: (data as any).password, // パスワードを取得
+        email: (data as any).email, // メールアドレスを取得
       };
   } catch (error) {
     console.error('法人の更新に失敗しました:', error);
@@ -536,6 +542,7 @@ export async function getOrganizationByAccountId(accountId: string): Promise<Org
         avgScore: Math.round(avgScore),
         accountId: (slugData as any).account_id || slugData.slug,
         password: (slugData as any).password, // パスワードを取得
+        email: (slugData as any).email, // メールアドレスを取得
       };
     }
 
@@ -581,9 +588,167 @@ export async function getOrganizationByAccountId(accountId: string): Promise<Org
         avgScore: Math.round(avgScore),
         accountId: (data as any).account_id || data.slug,
         password: (data as any).password, // パスワードを取得
+        email: (data as any).email, // メールアドレスを取得
       };
   } catch (error) {
     console.error('法人の取得に失敗しました:', error);
     return null;
+  }
+}
+
+/**
+ * パスワード再設定トークンを生成して保存
+ */
+export async function generatePasswordResetToken(accountId: string): Promise<string | null> {
+  try {
+    // 環境変数が設定されていない場合はエラーを投げる
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+    if (!supabaseUrl) {
+      throw new Error('Supabase環境変数が設定されていません。');
+    }
+
+    // アカウントIDで法人を検索
+    const org = await getOrganizationByAccountId(accountId);
+    if (!org) {
+      return null;
+    }
+
+    // ランダムなトークンを生成（32文字の英数字）
+    const resetToken = Array.from(crypto.getRandomValues(new Uint8Array(32)))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+
+    // 有効期限は1時間後
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 1);
+
+    // organizationsテーブルにトークンと有効期限を保存
+    const { error } = await supabase
+      .from('organizations')
+      .update({
+        password_reset_token: resetToken,
+        password_reset_expires_at: expiresAt.toISOString(),
+      })
+      .eq('id', org.id);
+
+    if (error) {
+      console.error('パスワード再設定トークンの保存エラー:', error);
+      throw error;
+    }
+
+    return resetToken;
+  } catch (error) {
+    console.error('パスワード再設定トークンの生成に失敗しました:', error);
+    return null;
+  }
+}
+
+/**
+ * パスワード再設定トークンを検証
+ */
+export async function verifyPasswordResetToken(resetToken: string): Promise<Organization | null> {
+  try {
+    // 環境変数が設定されていない場合はnullを返す
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+    if (!supabaseUrl) {
+      return null;
+    }
+
+    const { data, error } = await supabase
+      .from('organizations')
+      .select('*')
+      .eq('password_reset_token', resetToken)
+      .gt('password_reset_expires_at', new Date().toISOString())
+      .single();
+
+    if (error || !data) {
+      console.error('パスワード再設定トークンの検証エラー:', error);
+      return null;
+    }
+
+    // メンバー数と平均スコアを計算
+    const { count: memberCount } = await supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true })
+      .eq('organization_id', data.id);
+
+    let avgScore = 0;
+    try {
+      const { data: responses } = await supabase
+        .from('survey_responses')
+        .select('*')
+        .eq('organization_id', data.id);
+
+      if (responses && responses.length > 0) {
+        const surveyResponses = responses.map((r: any) => ({
+          id: r.id,
+          surveyId: r.survey_id,
+          orgId: r.organization_id,
+          respondentName: r.respondent_name || '',
+          submittedAt: r.submitted_at,
+          answers: Array.isArray(r.answers) ? r.answers : (typeof r.answers === 'string' ? JSON.parse(r.answers) : []),
+        }));
+
+        const rankDefinition = getRankDefinition(data.id);
+        const orgScores = calculateOrgAverageScore(data.id, surveyResponses, rankDefinition);
+        avgScore = calculateOverallScore(orgScores);
+      }
+    } catch (error) {
+      console.error(`法人 ${data.name} の平均スコア計算エラー:`, error);
+    }
+
+    return {
+      id: data.id,
+      slug: data.slug,
+      name: data.name,
+      createdAt: data.created_at.split('T')[0],
+      memberCount: memberCount || 0,
+      avgScore: Math.round(avgScore),
+      accountId: (data as any).account_id || data.slug,
+      password: (data as any).password,
+      email: (data as any).email, // メールアドレスを取得
+    };
+  } catch (error) {
+    console.error('パスワード再設定トークンの検証に失敗しました:', error);
+    return null;
+  }
+}
+
+/**
+ * パスワードを再設定
+ */
+export async function resetPassword(resetToken: string, newPassword: string): Promise<boolean> {
+  try {
+    // 環境変数が設定されていない場合はエラーを投げる
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+    if (!supabaseUrl) {
+      throw new Error('Supabase環境変数が設定されていません。');
+    }
+
+    // トークンを検証
+    const org = await verifyPasswordResetToken(resetToken);
+    if (!org) {
+      return false;
+    }
+
+    // パスワードを更新し、トークンを無効化
+    const { error } = await supabase
+      .from('organizations')
+      .update({
+        password: newPassword,
+        password_reset_token: null,
+        password_reset_expires_at: null,
+      })
+      .eq('id', org.id);
+
+    if (error) {
+      console.error('パスワード再設定エラー:', error);
+      throw error;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('パスワード再設定に失敗しました:', error);
+    return false;
   }
 }

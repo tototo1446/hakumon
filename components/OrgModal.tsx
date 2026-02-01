@@ -114,6 +114,18 @@ const OrgModal: React.FC<OrgModalProps> = ({ isOpen, onClose, onSave, org }) => 
       return;
     }
 
+    if (!formData.email.trim()) {
+      alert('メールアドレスは必須項目です。');
+      return;
+    }
+
+    // メールアドレスの形式チェック
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email.trim())) {
+      alert('有効なメールアドレスを入力してください。');
+      return;
+    }
+
     if (!org && !formData.password.trim()) {
       alert('新規作成時はパスワードを入力してください。');
       return;
@@ -127,7 +139,7 @@ const OrgModal: React.FC<OrgModalProps> = ({ isOpen, onClose, onSave, org }) => 
       website: formData.website.trim() || undefined,
       address: formData.address.trim() || undefined,
       phone: formData.phone.trim() || undefined,
-      email: formData.email.trim() || undefined,
+      email: formData.email.trim(),
       accountId: formData.accountId.trim(),
       password: formData.password.trim() || undefined, // 編集時でパスワードが空の場合は変更しない
     }, generatedId || undefined); // 新規作成時のみ生成されたIDを渡す
@@ -345,16 +357,20 @@ const OrgModal: React.FC<OrgModalProps> = ({ isOpen, onClose, onSave, org }) => 
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">
-                      メールアドレス
+                      メールアドレス <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="email"
                       name="email"
                       value={formData.email}
                       onChange={handleInputChange}
+                      required
                       placeholder="contact@example.com"
                       className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none"
                     />
+                    <p className="mt-1 text-xs text-slate-500">
+                      パスワード再設定メールの送信先として使用されます
+                    </p>
                   </div>
                 </div>
 
@@ -372,6 +388,8 @@ const OrgModal: React.FC<OrgModalProps> = ({ isOpen, onClose, onSave, org }) => 
                         value={formData.accountId}
                         onChange={handleInputChange}
                         required
+                        readOnly={false}
+                        disabled={false}
                         placeholder="法人のログインID"
                         className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none"
                       />
