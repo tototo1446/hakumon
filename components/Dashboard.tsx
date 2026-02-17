@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 import { LiteracyScores, Organization, SurveyResponse, Survey } from '../types';
 import { LITERACY_DIMENSIONS } from '../constants';
-import { getLiteracyInsight } from '../services/geminiService';
+import { getLiteracyInsight, aggregateResponses } from '../services/geminiService';
 import { getResponsesByOrg, getResponsesByOrgFromSupabase } from '../services/surveyResponseService';
 import { calculateOrgAverageScore, calculateOverallScore } from '../services/literacyScoreService';
 import { getRankDefinition } from '../services/rankDefinitionService';
@@ -72,7 +72,8 @@ const Dashboard: React.FC<DashboardProps> = ({
   const fetchInsight = async () => {
     setLoadingInsight(true);
     const promptName = viewingOrg ? `${viewingOrg.name}（組織全体）` : org.name;
-    const text = await getLiteracyInsight(displayScores, promptName);
+    const aggregation = orgResponses.length > 0 ? aggregateResponses(orgResponses, surveys) : undefined;
+    const text = await getLiteracyInsight(displayScores, promptName, aggregation);
     setInsight(text || '');
     setLoadingInsight(false);
   };
@@ -276,7 +277,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-base sm:text-lg font-bold text-slate-800">
-              {viewingOrg ? '組織向け AI 戦略アドバイス' : 'Gemini AI 分析アドバイス'}
+              {viewingOrg ? '組織向け AI 戦略アドバイス' : 'AI 分析アドバイス'}
             </h3>
             <button
               onClick={fetchInsight}
@@ -295,10 +296,6 @@ const Dashboard: React.FC<DashboardProps> = ({
             ) : (
               <p className="whitespace-pre-wrap">{insight || 'アドバイスを読み込んでいます...'}</p>
             )}
-          </div>
-          <div className="mt-4 flex items-center text-[10px] text-slate-400 uppercase tracking-widest font-bold">
-            <span className="w-2 h-2 rounded-full bg-green-400 mr-2"></span>
-            Powered by Gemini 3 Flash
           </div>
         </div>
       </div>

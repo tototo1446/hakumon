@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { AuthState, Organization, Role, Survey } from './types';
-import { MOCK_ORGS } from './constants';
 import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
 import AdminView from './components/AdminView';
@@ -14,7 +13,7 @@ import RespondentGrowthAnalysis from './components/RespondentGrowthAnalysis';
 import AddTestUsers from './components/AddTestUsers';
 import { findSurveyById } from './services/surveyService';
 import { saveResponse } from './services/surveyResponseService';
-import { getOrganizationById } from './services/organizationService';
+import { getOrganizationById, getOrganizations } from './services/organizationService';
 
 // 認証が必要なルートを保護するコンポーネント
 const ProtectedRoute: React.FC<{ 
@@ -56,9 +55,24 @@ const AppContent: React.FC = () => {
     isSuperAdmin: false
   });
 
+  const [organizationsForAdmin, setOrganizationsForAdmin] = useState<Organization[]>([]);
   const [publicSurvey, setPublicSurvey] = useState<Survey | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // システム管理者用：Supabaseから法人一覧を取得
+  useEffect(() => {
+    if (auth.isAuthenticated && auth.isSuperAdmin) {
+      getOrganizations().then((orgs) => {
+        setOrganizationsForAdmin(orgs);
+      }).catch((err) => {
+        console.error('法人一覧の取得に失敗しました:', err);
+        setOrganizationsForAdmin([]);
+      });
+    } else {
+      setOrganizationsForAdmin([]);
+    }
+  }, [auth.isAuthenticated, auth.isSuperAdmin]);
 
   // Handle URL params on initialization
   useEffect(() => {
@@ -83,15 +97,9 @@ const AppContent: React.FC = () => {
       const org = await getOrganizationById(orgId);
       if (org) {
         setAuth(prev => ({ ...prev, viewingOrg: org }));
-        return;
       }
     } catch (error) {
       console.error('法人の取得に失敗しました:', error);
-    }
-    
-    const org = MOCK_ORGS.find(o => o.id === orgId || o.slug === orgId);
-    if (org) {
-      setAuth(prev => ({ ...prev, viewingOrg: org }));
     }
   };
 
@@ -220,7 +228,7 @@ const AppContent: React.FC = () => {
                     org={auth.org!}
                     viewingOrg={auth.viewingOrg} 
                     onClearView={clearViewingOrg}
-                    organizations={auth.isSuperAdmin ? MOCK_ORGS : undefined}
+                    organizations={auth.isSuperAdmin ? organizationsForAdmin : undefined}
                     onSelectOrg={handleSelectOrg}
                     isSuperAdmin={auth.isSuperAdmin || false}
                   />
@@ -262,7 +270,7 @@ const AppContent: React.FC = () => {
                     org={auth.org!}
                     viewingOrg={auth.viewingOrg}
                     isSuperAdmin={auth.isSuperAdmin || false}
-                    organizations={auth.isSuperAdmin ? MOCK_ORGS : undefined}
+                    organizations={auth.isSuperAdmin ? organizationsForAdmin : undefined}
                     onSelectOrg={handleSelectOrg}
                     onClearView={clearViewingOrg}
                   />
