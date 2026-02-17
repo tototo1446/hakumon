@@ -72,7 +72,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   const fetchInsight = async () => {
     setLoadingInsight(true);
     const promptName = viewingOrg ? `${viewingOrg.name}（組織全体）` : org.name;
-    const aggregation = orgResponses.length > 0 ? aggregateResponses(orgResponses, surveys) : undefined;
+    const aggregation = orgResponses.length > 0 ? aggregateResponses(orgResponses) : undefined;
     const text = await getLiteracyInsight(displayScores, promptName, aggregation);
     setInsight(text || '');
     setLoadingInsight(false);

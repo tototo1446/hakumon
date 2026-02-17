@@ -1,6 +1,6 @@
 
 import { GoogleGenAI } from "@google/genai";
-import { LiteracyScores, SurveyResponse, Survey } from "../types";
+import { LiteracyScores, SurveyResponse } from "../types";
 
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY;
 if (!apiKey) {
@@ -31,7 +31,7 @@ export interface ResponseAggregation {
 }
 
 /** アンケート回答データから集計を行う */
-export function aggregateResponses(responses: SurveyResponse[], surveys: Survey[]): ResponseAggregation {
+export function aggregateResponses(responses: SurveyResponse[]): ResponseAggregation {
   const agg: ResponseAggregation = {
     totalRespondents: responses.length,
     usageFrequency: { daily: 0, weekly: 0, monthly: 0, usedBefore: 0, never: 0 },
@@ -46,12 +46,7 @@ export function aggregateResponses(responses: SurveyResponse[], surveys: Survey[
   };
 
   for (const response of responses) {
-    const survey = surveys.find(s => s.id === response.surveyId);
-
     for (const answer of response.answers) {
-      const question = survey?.questions.find(q => q.id === answer.questionId);
-      if (!question) continue;
-
       const val = answer.value;
 
       // q1: AI活用の有無
