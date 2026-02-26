@@ -189,9 +189,15 @@ const AdminView: React.FC<AdminViewProps> = ({ type, onSelectOrg, orgId }) => {
       }
       setIsOrgModalOpen(false);
       setEditingOrg(null);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('法人の保存に失敗しました:', error);
-      alert('法人の保存に失敗しました。もう一度お試しください。');
+      const err = error as { message?: string; details?: string; hint?: string };
+      const msg = err?.message || err?.details || String(error);
+      if (msg.includes('column') && msg.includes('does not exist')) {
+        alert(`法人の保存に失敗しました。\n\nデータベースのカラムが不足している可能性があります。\nSupabaseで以下のマイグレーションを実行してください：\n\n・add_email_to_organizations.sql\n・add_account_id_to_organizations.sql\n・add_password_to_organizations.sql\n・add_logo_to_organizations.sql\n・add_min_required_respondents_to_organizations.sql\n\nエラー詳細: ${msg}`);
+      } else {
+        alert(`法人の保存に失敗しました。\n\n${msg}\n\nもう一度お試しください。`);
+      }
     }
   };
 

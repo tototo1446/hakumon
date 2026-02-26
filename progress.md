@@ -1,5 +1,10 @@
 # 進捗ログ
 
+## 2025-02-26: 法人作成失敗の対応
+
+- [x] add_email_to_organizations.sql: organizations に email カラム追加マイグレーション（要実行）
+- [x] AdminView: エラー時に詳細メッセージを表示（カラム不足時はマイグレーション案内）
+
 ## 2025-02-26: 公開アンケートリンクが開けない問題の修正
 
 - [x] saveSurveyToSupabase: アンケートをSupabaseに保存（公開リンク用）
