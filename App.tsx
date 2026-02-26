@@ -58,6 +58,7 @@ const AppContent: React.FC = () => {
   const [organizationsForAdmin, setOrganizationsForAdmin] = useState<Organization[]>([]);
   const [publicSurvey, setPublicSurvey] = useState<Survey | null>(null);
   const [publicSurveyLoading, setPublicSurveyLoading] = useState(false);
+  const [publicSurveyLoadAttempted, setPublicSurveyLoadAttempted] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -90,10 +91,12 @@ const AppContent: React.FC = () => {
       const localSurvey = findSurveyById(surveyId);
       if (localSurvey && localSurvey.isActive) {
         setPublicSurvey(localSurvey);
+        setPublicSurveyLoadAttempted(true);
         return;
       }
       // 2. Supabaseから取得（公開リンク経由の未ログインユーザー向け）
       setPublicSurveyLoading(true);
+      setPublicSurveyLoadAttempted(true);
       getSurveyByIdFromSupabaseByIdOnly(surveyId).then((survey) => {
         if (survey && survey.isActive) {
           setPublicSurvey(survey);
@@ -183,6 +186,28 @@ const AppContent: React.FC = () => {
         <div className="text-center">
           <div className="w-10 h-10 border-4 border-sky-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-slate-600">アンケートを読み込んでいます...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // surveyパラメータありで取得失敗時はログイン画面ではなくエラーメッセージを表示
+  const surveyIdInUrl = new URLSearchParams(window.location.search).get('survey');
+  if (surveyIdInUrl && publicSurveyLoadAttempted && !publicSurveyLoading && !publicSurvey) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 max-w-md text-center">
+          <p className="text-slate-700 font-medium mb-2">アンケートが見つかりません</p>
+          <p className="text-slate-500 text-sm mb-6">
+            リンクが無効か、アンケートが非公開になっている可能性があります。<br />
+            正しいリンクかご確認ください。
+          </p>
+          <a
+            href="/"
+            className="inline-block px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors text-sm"
+          >
+            トップへ戻る
+          </a>
         </div>
       </div>
     );

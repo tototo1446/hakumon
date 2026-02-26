@@ -615,10 +615,10 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
     setSurveys(updatedSurveys);
   };
 
-  // 回答リンクを生成
+  // 回答リンクを生成（ルートパス固定：未ログインでもアクセス可能にするため）
   const getResponseLink = (surveyId: string): string => {
-    const baseUrl = window.location.origin + window.location.pathname;
-    return `${baseUrl}?survey=${surveyId}`;
+    const baseUrl = window.location.origin;
+    return `${baseUrl}/?survey=${surveyId}`;
   };
 
   // リンクをクリップボードにコピー
