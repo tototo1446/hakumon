@@ -462,7 +462,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 type="text"
                 value={accountId}
                 onChange={(e) => setAccountId(e.target.value)}
-                placeholder={tenantOrg ? tenantOrg.accountId : "管理者ID (hakumon)"}
+                placeholder={tenantOrg ? tenantOrg.accountId : "管理者ID"}
                 className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-sky-400 focus:border-transparent outline-none transition-all"
                 required
                 readOnly={!!tenantOrg} // 法人用ログインページでは読み取り専用
@@ -564,7 +564,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     type="text"
                     value={tenantOrg ? tenantOrg.accountId : resetAccountId}
                     onChange={(e) => setResetAccountId(e.target.value)}
-                    placeholder={tenantOrg ? tenantOrg.accountId : "管理者ID (hakumon)"}
+                    placeholder={tenantOrg ? tenantOrg.accountId : "管理者ID"}
                     className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-sky-400 focus:border-transparent outline-none transition-all"
                     required
                     readOnly={!!tenantOrg}
