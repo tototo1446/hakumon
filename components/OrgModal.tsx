@@ -169,8 +169,8 @@ const OrgModal: React.FC<OrgModalProps> = ({ isOpen, onClose, onSave, org }) => 
 
         {/* モーダル: モバイルでフル幅・下から表示 */}
         <div className="inline-block w-full max-h-[90vh] sm:max-h-[85vh] align-bottom bg-white rounded-t-2xl sm:rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
-          <form onSubmit={handleSubmit}>
-            <div className="bg-white px-4 sm:px-6 pt-6 pb-4 overflow-y-auto max-h-[calc(90vh-8rem)] sm:max-h-none">
+          <form onSubmit={handleSubmit} className="flex flex-col max-h-[90vh] sm:max-h-[85vh]">
+            <div className="bg-white px-4 sm:px-6 pt-6 pb-4 overflow-y-auto min-h-0 max-h-[calc(90vh-7rem)] sm:max-h-[calc(85vh-7rem)]">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl sm:text-2xl font-bold text-slate-900">
                   {org ? '法人情報を編集' : '新規法人を追加'}
