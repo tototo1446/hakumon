@@ -329,7 +329,7 @@ const AdminView: React.FC<AdminViewProps> = ({ type, onSelectOrg, orgId }) => {
                     <div className="flex flex-wrap justify-end gap-1 sm:gap-2">
                       <button 
                         onClick={() => handleOpenTenantLogin(org)}
-                        className="text-sky-500 hover:text-sky-900 text-xs sm:text-sm font-bold bg-sky-50 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity hidden sm:inline-block"
+                        className="text-sky-500 hover:text-sky-900 text-xs sm:text-sm font-bold bg-sky-50 px-2 py-1 rounded hover:bg-sky-100 transition-colors"
                         title="ログインページへ飛ぶ"
                       >
                         ログイン
