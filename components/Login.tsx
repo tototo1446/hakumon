@@ -413,11 +413,11 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-white p-4 sm:p-6 safe-area-padding">
       <div className="w-full max-w-md min-w-0">
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden p-6 sm:p-8 border-t-4 border-sky-400">
-          <div className="text-center mb-8 sm:mb-10">
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden px-6 sm:px-8 pt-4 sm:pt-5 pb-6 sm:pb-8 border-t-4 border-sky-400">
+          <div className="text-center mb-5 sm:mb-6">
             {tenantOrg ? (
               <>
-                <div className="flex justify-center mb-4">
+                <div className="flex justify-center mb-2">
                   {tenantOrg.logo ? (
                     <>
                       <img
@@ -445,7 +445,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               </>
             ) : (
               <>
-                <div className="flex justify-center mb-4">
+                <div className="flex justify-center mb-2">
                   <img src="/YOHAKU_CMYK_1_main.jpg" alt="YOHAKU" className="h-12 sm:h-16 w-auto object-contain shrink-0" />
                 </div>
                 <p className="text-slate-500 text-sm sm:text-base">システム管理者用ログイン</p>
