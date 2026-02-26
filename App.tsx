@@ -219,16 +219,8 @@ const AppContent: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 max-w-md text-center">
-          <p className="text-slate-700 text-lg font-medium mb-6">アンケートへのご回答ありがとうございました！</p>
-          <button
-            onClick={() => {
-              setPublicSurveySubmitted(false);
-              navigate('/');
-            }}
-            className="inline-block px-6 py-3 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors"
-          >
-            トップへ戻る
-          </button>
+          <div className="text-6xl mb-6" aria-hidden="true">🙏</div>
+          <p className="text-slate-700 text-lg font-medium">アンケートへのご回答ありがとうございました！</p>
         </div>
       </div>
     );

@@ -912,14 +912,26 @@ const Dashboard: React.FC<DashboardProps> = ({
                     const survey = surveys.find(s => s.id === selectedResponse.surveyId);
                     const question = survey?.questions.find(q => q.id === answer.questionId);
                     if (!question) return null;
+                    // 選択肢系は value → label に変換して日本語表示（アンケート管理と同様）
+                    let displayValue: React.ReactNode;
+                    if (answer.type === 'checkbox' && Array.isArray(answer.value)) {
+                      const labels = answer.value.map((val) => {
+                        const opt = question.options?.find((o) => o.value === val);
+                        return opt ? opt.label : val;
+                      });
+                      displayValue = labels.join(', ');
+                    } else if (answer.type === 'radio' || answer.type === 'rank') {
+                      const opt = question.options?.find((o) => o.value === answer.value);
+                      displayValue = opt ? opt.label : answer.value;
+                    } else {
+                      displayValue = Array.isArray(answer.value)
+                        ? answer.value.join(', ')
+                        : (answer.value ?? '(未回答)');
+                    }
                     return (
                       <div key={index} className="p-3 bg-slate-50 rounded border border-slate-200">
                         <p className="font-medium text-sm text-slate-700 mb-1">{question.title}</p>
-                        <p className="text-slate-600">
-                          {Array.isArray(answer.value)
-                            ? answer.value.join(', ')
-                            : answer.value}
-                        </p>
+                        <p className="text-slate-600 whitespace-pre-wrap">{displayValue}</p>
                       </div>
                     );
                   })}
