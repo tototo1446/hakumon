@@ -80,6 +80,69 @@ export function deleteSurvey(surveyId: string, orgId: string): void {
   saveSurveys(orgId, updatedSurveys);
 }
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * アンケートをSupabaseに保存（upsert）
+ * 公開リンクで未ログインユーザーがアクセスできるようにするために必要
+ */
+export async function saveSurveyToSupabase(survey: Survey): Promise<Survey | null> {
+  try {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+    if (!supabaseUrl) {
+      console.warn('Supabase環境変数が設定されていないため、保存をスキップします。');
+      return null;
+    }
+
+    // organization_id が UUID 形式でない場合はスキップ（MOCK等）
+    if (!UUID_REGEX.test(survey.orgId)) {
+      console.warn('organization_id がUUID形式でないため、Supabase保存をスキップします:', survey.orgId);
+      return null;
+    }
+
+    const row = {
+      id: UUID_REGEX.test(survey.id) ? survey.id : crypto.randomUUID(),
+      title: survey.title,
+      description: survey.description || '',
+      questions: survey.questions,
+      organization_id: survey.orgId,
+      created_by: null, // 法人ログインの場合は profiles がないため null
+      is_active: survey.isActive ?? true,
+      created_at: survey.createdAt,
+      updated_at: survey.updatedAt,
+    };
+
+    const { data, error } = await supabase
+      .from('surveys')
+      .upsert(row, {
+        onConflict: 'id',
+        ignoreDuplicates: false,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('アンケートのSupabase保存に失敗しました:', error);
+      return null;
+    }
+
+    return {
+      id: data.id,
+      title: data.title,
+      description: data.description || '',
+      questions: (data.questions as any) || [],
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+      isActive: data.is_active ?? true,
+      createdBy: data.created_by ?? survey.createdBy ?? survey.orgId,
+      orgId: data.organization_id,
+    };
+  } catch (error) {
+    console.error('アンケートのSupabase保存中にエラーが発生しました:', error);
+    return null;
+  }
+}
+
 /**
  * Supabaseから法人別のアンケート一覧を取得
  */
@@ -115,8 +178,6 @@ export async function getSurveysByOrgFromSupabase(orgId: string): Promise<Survey
     return [];
   }
 }
-
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
  * SupabaseからアンケートIDのみでアンケートを取得（公開リンク用・orgId不要）

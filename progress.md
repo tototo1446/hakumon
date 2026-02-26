@@ -1,5 +1,12 @@
 # 進捗ログ
 
+## 2025-02-26: 公開アンケートリンクが開けない問題の修正
+
+- [x] saveSurveyToSupabase: アンケートをSupabaseに保存（公開リンク用）
+- [x] 新規アンケート作成時にUUIDを使用（Supabaseのid形式に合わせる）
+- [x] 保存・編集・公開切替時にSupabaseへ同期
+- [x] make_surveys_created_by_nullable.sql: created_by を NULL 許容に変更（要実行）
+
 ## 2025-02-26: 新規アンケート作成時に内容編集画面を表示
 
 - [x] handleOpenAddModal: モーダルではなくSurveyEditorを直接表示

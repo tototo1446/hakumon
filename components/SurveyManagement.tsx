@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Survey, Question, QuestionOption, Role, QuestionType, SurveyResponse } from '../types';
 import SurveyEditor from './SurveyEditor';
 import SurveyResponseForm from './SurveyResponseForm';
-import { saveSurveys, getSurveysByOrg, getSurveysByOrgFromSupabase } from '../services/surveyService';
+import { saveSurveys, getSurveysByOrg, getSurveysByOrgFromSupabase, saveSurveyToSupabase } from '../services/surveyService';
 import { getResponsesBySurveyFromSupabase } from '../services/surveyResponseService';
 
 interface SurveyManagementProps {
@@ -310,8 +310,9 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
       isActive: true,
     });
     // 新規作成時はアンケート内容作成画面（SurveyEditor）を直接表示
+    // UUIDを使用（公開リンクでSupabaseから取得するため）
     const newDraftSurvey: Survey = {
-      id: `survey-${Date.now()}`,
+      id: crypto.randomUUID(),
       title: '',
       description: '',
       questions: [],
@@ -338,11 +339,15 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
     setEditingSurveyInEditor(survey);
   };
 
-  const handleSaveFromEditor = (updatedSurvey: Survey) => {
+  const handleSaveFromEditor = async (updatedSurvey: Survey) => {
+    // Supabaseに保存（公開リンクで未ログインユーザーがアクセスできるように）
+    const savedSurvey = await saveSurveyToSupabase(updatedSurvey);
+    const surveyToUse = savedSurvey ?? updatedSurvey;
+
     const exists = surveys.some(s => s.id === updatedSurvey.id);
     const updatedSurveys = exists
-      ? surveys.map(s => (s.id === updatedSurvey.id ? updatedSurvey : s))
-      : [...surveys, updatedSurvey];
+      ? surveys.map(s => (s.id === updatedSurvey.id ? surveyToUse : s))
+      : [...surveys, surveyToUse];
     saveSurveys(orgId, updatedSurveys);
     setSurveys(updatedSurveys);
     setEditingSurveyInEditor(null);
@@ -488,6 +493,7 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
     );
     saveSurveys(orgId, updatedSurveys);
     setSurveys(updatedSurveys);
+    saveSurveyToSupabase(updatedSurveys.find(s => s.id === editingSurvey.id)!);
 
     // 編集中のアンケートも更新
     setEditingSurvey({
@@ -514,6 +520,8 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
       });
       saveSurveys(orgId, updatedSurveys);
       setSurveys(updatedSurveys);
+      const modifiedSurvey = updatedSurveys.find(s => s.id === surveyId);
+      if (modifiedSurvey) saveSurveyToSupabase(modifiedSurvey);
 
       // 編集中のアンケートも更新
       if (editingSurvey && editingSurvey.id === surveyId) {
@@ -545,6 +553,8 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
     });
     saveSurveys(orgId, updatedSurveys);
     setSurveys(updatedSurveys);
+    const modifiedSurvey = updatedSurveys.find(s => s.id === surveyId);
+    if (modifiedSurvey) saveSurveyToSupabase(modifiedSurvey);
 
     // 編集中のアンケートも更新
     if (editingSurvey && editingSurvey.id === surveyId) {
@@ -626,6 +636,8 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
     );
     saveSurveys(orgId, updatedSurveys);
     setSurveys(updatedSurveys);
+    const modifiedSurvey = updatedSurveys.find(s => s.id === id);
+    if (modifiedSurvey) saveSurveyToSupabase(modifiedSurvey);
   };
 
   // 回答リンクを生成（ルートパス固定：未ログインでもアクセス可能にするため）
