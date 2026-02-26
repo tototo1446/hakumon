@@ -301,7 +301,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden p-6 sm:p-8 border-t-4 border-sky-400">
             <div className="text-center mb-8 sm:mb-10">
               <div className="flex justify-center mb-4">
-                <img src="/HAKUMON logo.png" alt="HAKUMON" className="h-12 sm:h-16 w-auto" />
+                <img src="/YOHAKU_CMYK_1_main.jpg" alt="YOHAKU" className="h-12 sm:h-16 w-auto" />
               </div>
               <h1 className="text-xl sm:text-2xl font-bold text-slate-900 mb-1">パスワード再設定</h1>
               <p className="text-slate-500 text-sm sm:text-base">{resetOrg.name}</p>
@@ -417,7 +417,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                   <span className="text-xl sm:text-2xl font-bold">🏢</span>
                 </div>
                 <div className="flex justify-center mb-3">
-                  <img src="/HAKUMON logo.png" alt="HAKUMON" className="h-8 sm:h-10 w-auto" />
+                  <img src="/YOHAKU_CMYK_1_main.jpg" alt="YOHAKU" className="h-8 sm:h-10 w-auto" />
                 </div>
                 <h1 className="text-xl sm:text-2xl font-bold text-slate-900 mb-1">{tenantOrg.name}</h1>
                 <p className="text-slate-500 text-xs sm:text-sm">HAKUMON ログイン</p>
@@ -425,7 +425,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             ) : (
               <>
                 <div className="flex justify-center mb-4">
-                  <img src="/HAKUMON logo.png" alt="HAKUMON" className="h-12 sm:h-16 w-auto" />
+                  <img src="/YOHAKU_CMYK_1_main.jpg" alt="YOHAKU" className="h-12 sm:h-16 w-auto" />
                 </div>
                 <p className="text-slate-500 text-sm sm:text-base">システム管理者用ログイン</p>
               </>

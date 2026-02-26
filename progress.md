@@ -6,6 +6,21 @@
 - [x] Dashboard: 「Powered by Gemini 3 Flash」フッターを削除
 - [x] 未使用インポート（Type）を削除
 
+## 2025-02-26: AI戦略アドバイスのデータ閾値・法人別カスタム・手動分析
+
+- [x] 自動分析を廃止：タブ移動等で勝手に分析しない
+- [x] 分析結果をlocalStorageに保存、法人切り替え時に復元
+- [x] ボタン文言：「分析」（初回）／「再分析」（既存あり）、クリック時のみ実行
+- [x] add_min_required_respondents_to_organizations.sql: マイグレーション追加
+- [x] types.ts: Organization に minRequiredRespondents 追加
+- [x] organizationService: 取得・更新・作成で minRequiredRespondents を扱う
+- [x] Dashboard: 閾値未満では分析せず「回答者数がN名に達するまで…」メッセージ表示
+- [x] OrgModal: 法人編集に「AI戦略アドバイスに必要な最小回答者数」入力欄追加
+
+## 2025-02-23: ツールロゴの変更
+
+- [x] Layout.tsx, Login.tsx: ロゴを `/YOHAKU_CMYK_1_main.jpg` に変更
+
 ## 2025-02-17: 管理者ダッシュボード法人選択のSupabase連携
 
 - [x] App.tsx: organizationsForAdmin state 追加、getOrganizations() でSupabaseから取得

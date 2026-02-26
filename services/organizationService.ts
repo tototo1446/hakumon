@@ -77,6 +77,7 @@ export async function getOrganizations(): Promise<Organization[]> {
         accountId: (org as any).account_id || org.slug,
         password: (org as any).password, // パスワードを取得
         email: (org as any).email, // メールアドレスを取得
+        minRequiredRespondents: (org as any).min_required_respondents ?? undefined,
       };
     }));
 
@@ -170,6 +171,7 @@ export async function getOrganizationById(id: string): Promise<Organization | nu
         accountId: (data as any).account_id || data.slug,
         password: (data as any).password, // パスワードを取得
         email: (data as any).email, // メールアドレスを取得
+        minRequiredRespondents: (data as any).min_required_respondents ?? undefined,
       };
   } catch (error) {
     console.error('法人の取得に失敗しました:', error);
@@ -250,6 +252,7 @@ export async function getOrganizationBySlug(slug: string): Promise<Organization 
         accountId: (data as any).account_id || data.slug,
         password: (data as any).password, // パスワードを取得
         email: (data as any).email, // メールアドレスを取得
+        minRequiredRespondents: (data as any).min_required_respondents ?? undefined,
       };
   } catch (error) {
     console.error('法人の取得に失敗しました:', error);
@@ -270,15 +273,20 @@ export async function createOrganization(
       throw new Error('Supabase環境変数が設定されていません。');
     }
 
+    const insertData: Record<string, unknown> = {
+      slug: orgData.slug,
+      name: orgData.name,
+      account_id: orgData.accountId, // アカウントIDを保存
+      password: orgData.password, // パスワードを保存
+      email: orgData.email, // メールアドレスを保存
+    };
+    if (orgData.minRequiredRespondents != null) {
+      insertData.min_required_respondents = orgData.minRequiredRespondents;
+    }
+
     const { data, error } = await supabase
       .from('organizations')
-      .insert({
-        slug: orgData.slug,
-        name: orgData.name,
-        account_id: orgData.accountId, // アカウントIDを保存
-        password: orgData.password, // パスワードを保存
-        email: orgData.email, // メールアドレスを保存
-      })
+      .insert(insertData)
       .select()
       .single();
 
@@ -305,6 +313,7 @@ export async function createOrganization(
       address: orgData.address,
       phone: orgData.phone,
       email: orgData.email,
+      minRequiredRespondents: (data as any).min_required_respondents ?? orgData.minRequiredRespondents,
     };
   } catch (error) {
     console.error('法人の作成に失敗しました:', error);
@@ -335,6 +344,7 @@ export async function updateOrganization(
     if (orgData.accountId) updateData.account_id = orgData.accountId;
     if (orgData.password) updateData.password = orgData.password; // パスワードを更新
     if (orgData.email !== undefined) updateData.email = orgData.email; // メールアドレスを更新（空文字列も許可）
+    if (orgData.minRequiredRespondents !== undefined) updateData.min_required_respondents = orgData.minRequiredRespondents;
 
     const { data, error } = await supabase
       .from('organizations')
@@ -399,6 +409,7 @@ export async function updateOrganization(
         accountId: (data as any).account_id || data.slug,
         password: (data as any).password, // パスワードを取得
         email: (data as any).email, // メールアドレスを取得
+        minRequiredRespondents: (data as any).min_required_respondents ?? undefined,
       };
   } catch (error) {
     console.error('法人の更新に失敗しました:', error);
@@ -589,6 +600,7 @@ export async function getOrganizationByAccountId(accountId: string): Promise<Org
         accountId: (data as any).account_id || data.slug,
         password: (data as any).password, // パスワードを取得
         email: (data as any).email, // メールアドレスを取得
+        minRequiredRespondents: (data as any).min_required_respondents ?? undefined,
       };
   } catch (error) {
     console.error('法人の取得に失敗しました:', error);
@@ -707,6 +719,7 @@ export async function verifyPasswordResetToken(resetToken: string): Promise<Orga
       accountId: (data as any).account_id || data.slug,
       password: (data as any).password,
       email: (data as any).email, // メールアドレスを取得
+      minRequiredRespondents: (data as any).min_required_respondents ?? undefined,
     };
   } catch (error) {
     console.error('パスワード再設定トークンの検証に失敗しました:', error);

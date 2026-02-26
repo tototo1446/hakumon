@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 import { LiteracyScores, Organization, SurveyResponse, Survey } from '../types';
 import { LITERACY_DIMENSIONS } from '../constants';
@@ -69,14 +70,50 @@ const Dashboard: React.FC<DashboardProps> = ({
     fullMark: 100,
   }));
 
+  // AI戦略アドバイス表示に必要な最小回答者数（法人ごとにカスタム可能、未設定時は5）
+  const minRequiredRespondents = (viewingOrg || org).minRequiredRespondents ?? 5;
+  const hasEnoughDataForInsight = orgResponses.length >= minRequiredRespondents;
+
+  const getInsightStorageKey = (orgId: string) => `hakumon_ai_insight_${orgId}`;
+
   const fetchInsight = async () => {
+    if (!hasEnoughDataForInsight) return;
     setLoadingInsight(true);
-    const promptName = viewingOrg ? `${viewingOrg.name}（組織全体）` : org.name;
-    const aggregation = orgResponses.length > 0 ? aggregateResponses(orgResponses) : undefined;
-    const text = await getLiteracyInsight(displayScores, promptName, aggregation);
-    setInsight(text || '');
-    setLoadingInsight(false);
+    try {
+      const promptName = viewingOrg ? `${viewingOrg.name}（組織全体）` : org.name;
+      const aggregation = orgResponses.length > 0 ? aggregateResponses(orgResponses) : undefined;
+      const text = await getLiteracyInsight(displayScores, promptName, aggregation);
+      const result = text || '';
+      setInsight(result);
+      // 分析結果を保存（法人ごと）
+      try {
+        localStorage.setItem(getInsightStorageKey(targetOrgId), JSON.stringify({
+          text: result,
+          generatedAt: new Date().toISOString(),
+        }));
+      } catch {
+        // localStorage が使えない場合は無視
+      }
+    } finally {
+      setLoadingInsight(false);
+    }
   };
+
+  // 法人切り替え時：保存済みの分析結果を読み込む（自動分析は行わない）
+  useEffect(() => {
+    try {
+      const key = getInsightStorageKey(targetOrgId);
+      const stored = localStorage.getItem(key);
+      if (stored) {
+        const parsed = JSON.parse(stored) as { text?: string; generatedAt?: string };
+        setInsight(parsed.text ?? '');
+      } else {
+        setInsight('');
+      }
+    } catch {
+      setInsight('');
+    }
+  }, [targetOrgId]);
 
   // 回答データを取得
   useEffect(() => {
@@ -157,10 +194,6 @@ const Dashboard: React.FC<DashboardProps> = ({
     }
   }, [isSuperAdmin, organizations]);
 
-  useEffect(() => {
-    fetchInsight();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewingOrg, org, responses]);
 
   const handleOrgChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOrgId = e.target.value;
@@ -255,21 +288,35 @@ const Dashboard: React.FC<DashboardProps> = ({
           <h3 className="text-base sm:text-lg font-bold text-slate-800 mb-4 sm:mb-6">
             {viewingOrg ? '組織平均リテラシー分布' : 'リテラシー・レーダーチャート'}
           </h3>
-          <div className="h-64 sm:h-72 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
-                <PolarGrid stroke="#e2e8f0" />
-                <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 10 }} />
-                <PolarRadiusAxis angle={30} domain={[0, 100]} />
-                <Radar
-                  name={displayName}
-                  dataKey="A"
-                  stroke="#6366f1"
-                  fill="#6366f1"
-                  fillOpacity={0.6}
-                />
-              </RadarChart>
-            </ResponsiveContainer>
+          <div className="h-64 sm:h-72 w-full flex items-center justify-center">
+            {hasEnoughDataForInsight ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
+                  <PolarGrid stroke="#e2e8f0" />
+                  <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 10 }} />
+                  <PolarRadiusAxis angle={30} domain={[0, 100]} />
+                  <Radar
+                    name={displayName}
+                    dataKey="A"
+                    stroke="#6366f1"
+                    fill="#6366f1"
+                    fillOpacity={0.6}
+                  />
+                </RadarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex flex-col items-center justify-center text-center space-y-2 px-4">
+                <p className="text-slate-600 font-medium">
+                  回答者数が {minRequiredRespondents} 名に達するまで表示できません
+                </p>
+                <p className="text-slate-500 text-xs">
+                  現在 {orgResponses.length} 名 / {minRequiredRespondents} 名
+                </p>
+                <p className="text-slate-400 text-xs">
+                  法人ごとの最小回答者数は、管理者画面で設定できます
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -279,22 +326,52 @@ const Dashboard: React.FC<DashboardProps> = ({
             <h3 className="text-base sm:text-lg font-bold text-slate-800">
               {viewingOrg ? '組織向け AI 戦略アドバイス' : 'AI 分析アドバイス'}
             </h3>
-            <button
-              onClick={fetchInsight}
-              disabled={loadingInsight}
-              className="text-xs text-sky-500 hover:text-sky-800 font-medium whitespace-nowrap ml-2"
-            >
-              {loadingInsight ? '分析中...' : '再生成'}
-            </button>
+            {hasEnoughDataForInsight && (
+              <button
+                onClick={fetchInsight}
+                disabled={loadingInsight}
+                className="text-xs text-sky-500 hover:text-sky-800 font-medium whitespace-nowrap ml-2"
+              >
+                {loadingInsight ? '分析中...' : insight ? '再分析' : '分析'}
+              </button>
+            )}
           </div>
           <div className="flex-1 bg-sky-50/50 rounded-lg p-4 sm:p-5 border border-sky-100 text-slate-700 text-xs sm:text-sm leading-relaxed overflow-y-auto max-h-64">
-            {loadingInsight ? (
+            {!hasEnoughDataForInsight ? (
+              <div className="flex flex-col items-center justify-center h-full space-y-2 text-center">
+                <p className="text-slate-600 font-medium">
+                  回答者数が {minRequiredRespondents} 名に達するまで分析できません
+                </p>
+                <p className="text-slate-500 text-xs">
+                  現在 {orgResponses.length} 名 / {minRequiredRespondents} 名
+                </p>
+                <p className="text-slate-400 text-xs mt-2">
+                  法人ごとの最小回答者数は、管理者画面で設定できます
+                </p>
+              </div>
+            ) : loadingInsight ? (
               <div className="flex flex-col items-center justify-center h-full space-y-2">
                 <div className="w-8 h-8 border-4 border-sky-400 border-t-transparent rounded-full animate-spin"></div>
                 <p className="text-slate-500 italic">スコアをAIが解析しています...</p>
               </div>
             ) : (
-              <p className="whitespace-pre-wrap">{insight || 'アドバイスを読み込んでいます...'}</p>
+              <div className="ai-insight-markdown">
+                {insight ? (
+                  <ReactMarkdown
+                    components={{
+                      h2: ({ children }) => <h2 className="text-sm font-bold text-slate-800 mt-4 mb-2 first:mt-0">{children}</h2>,
+                      ul: ({ children }) => <ul className="list-disc list-inside space-y-1 my-2">{children}</ul>,
+                      li: ({ children }) => <li className="text-slate-700">{children}</li>,
+                      p: ({ children }) => <p className="my-2 text-slate-700">{children}</p>,
+                      strong: ({ children }) => <strong className="font-semibold text-slate-800">{children}</strong>,
+                    }}
+                  >
+                    {insight}
+                  </ReactMarkdown>
+                ) : (
+                  <p className="text-slate-600">「分析」ボタンをクリックすると、現在のデータに基づいてAI戦略アドバイスを生成します</p>
+                )}
+              </div>
             )}
           </div>
         </div>

@@ -32,3 +32,31 @@
    - システム管理者ログイン時に getOrganizations() でSupabaseから法人一覧を取得
    - Dashboard / RespondentGrowthAnalysis に organizationsForAdmin を渡す（MOCK_ORGS の代わり）
    - loadOrganizationById の MOCK_ORGS フォールバックを削除
+
+---
+
+# タスク: AI戦略アドバイスのデータ閾値と法人別カスタム
+
+## 概要
+- 集計結果がない状態で「それっぽい分析」を表示しない
+- 法人ごとに「何名のデータが集まったら分析可能か」をカスタム可能にする
+
+## 実装計画
+
+1. **DBマイグレーション** `add_min_required_respondents_to_organizations.sql`
+   - organizations に min_required_respondents (INTEGER, DEFAULT 5) を追加
+
+2. **types.ts**
+   - Organization に minRequiredRespondents?: number を追加
+
+3. **organizationService.ts**
+   - getOrganizations / getOrganizationById: min_required_respondents をマッピング
+   - updateOrganization / createOrganization: minRequiredRespondents を保存
+
+4. **Dashboard.tsx**
+   - 閾値: (viewingOrg || org).minRequiredRespondents ?? 5
+   - orgResponses.length < 閾値 のとき: 分析を実行せず、適切なメッセージを表示
+   - 「再生成」ボタンは閾値未満では無効化
+
+5. **OrgModal.tsx**
+   - 法人編集フォームに「AI分析に必要な最小回答者数」入力欄を追加

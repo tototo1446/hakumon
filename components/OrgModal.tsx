@@ -22,6 +22,7 @@ const OrgModal: React.FC<OrgModalProps> = ({ isOpen, onClose, onSave, org }) => 
     email: '',
     accountId: '',
     password: '',
+    minRequiredRespondents: '' as string | number,
   });
 
   const [logoPreview, setLogoPreview] = useState<string>('');
@@ -41,6 +42,7 @@ const OrgModal: React.FC<OrgModalProps> = ({ isOpen, onClose, onSave, org }) => 
         email: org.email || '',
         accountId: org.accountId || '',
         password: '', // セキュリティのため、編集時は空にする
+        minRequiredRespondents: org.minRequiredRespondents ?? '',
       });
       setLogoPreview(org.logo || '');
       setGeneratedId(''); // 編集時はIDを表示しない
@@ -60,6 +62,7 @@ const OrgModal: React.FC<OrgModalProps> = ({ isOpen, onClose, onSave, org }) => 
         email: '',
         accountId: '',
         password: '',
+        minRequiredRespondents: 5, // デフォルト5名
       });
       setLogoPreview('');
     }
@@ -131,6 +134,11 @@ const OrgModal: React.FC<OrgModalProps> = ({ isOpen, onClose, onSave, org }) => 
       return;
     }
 
+    const minVal = formData.minRequiredRespondents === '' || formData.minRequiredRespondents === undefined
+      ? undefined
+      : Number(formData.minRequiredRespondents);
+    const minRequiredRespondents = minVal != null && !Number.isNaN(minVal) && minVal >= 1 ? minVal : undefined;
+
     onSave({
       name: formData.name.trim(),
       slug: formData.slug.trim(),
@@ -142,6 +150,7 @@ const OrgModal: React.FC<OrgModalProps> = ({ isOpen, onClose, onSave, org }) => 
       email: formData.email.trim(),
       accountId: formData.accountId.trim(),
       password: formData.password.trim() || undefined, // 編集時でパスワードが空の場合は変更しない
+      minRequiredRespondents,
     }, generatedId || undefined); // 新規作成時のみ生成されたIDを渡す
     
     onClose();
@@ -372,6 +381,28 @@ const OrgModal: React.FC<OrgModalProps> = ({ isOpen, onClose, onSave, org }) => 
                       パスワード再設定メールの送信先として使用されます
                     </p>
                   </div>
+                </div>
+
+                {/* AI戦略アドバイスに必要な最小回答者数 */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    AI戦略アドバイスに必要な最小回答者数
+                  </label>
+                  <input
+                    type="number"
+                    name="minRequiredRespondents"
+                    value={formData.minRequiredRespondents}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setFormData(prev => ({ ...prev, minRequiredRespondents: v === '' ? '' : Number(v) }));
+                    }}
+                    min={1}
+                    placeholder="5"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none"
+                  />
+                  <p className="mt-1 text-xs text-slate-500">
+                    この人数以上の回答が集まるまでAI戦略アドバイスは表示されません。空欄の場合は5名がデフォルトです
+                  </p>
                 </div>
 
                 {/* アカウントIDとパスワード */}
