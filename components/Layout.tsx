@@ -87,17 +87,6 @@ const Layout: React.FC<LayoutProps> = ({ children, org, isSuperAdmin, onLogout, 
             </Link>
           )}
 
-          {!isSuperAdmin && (
-            <Link
-              to={createLinkTo('/users')}
-              onClick={() => setIsMobileMenuOpen(false)}
-              className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${isActive('/users') ? 'bg-sky-400 text-white' : 'text-slate-700 hover:bg-sky-50'}`}
-            >
-              <span className="mr-3">👥</span>
-              ユーザー管理
-            </Link>
-          )}
-
           <Link
             to={createLinkTo('/growth')}
             onClick={() => setIsMobileMenuOpen(false)}
@@ -159,7 +148,6 @@ const Layout: React.FC<LayoutProps> = ({ children, org, isSuperAdmin, onLogout, 
             {isActive('/dashboard') && '分析ダッシュボード'}
             {isActive('/surveys') && !isSuperAdmin && 'アンケート管理'}
             {isActive('/rank-definition') && !isSuperAdmin && 'ランク定義設定'}
-            {isActive('/users') && !isSuperAdmin && 'ユーザー管理'}
             {isActive('/growth') && '回答者別成長率分析'}
             {isActive('/orgs') && '法人アカウント管理'}
             </h2>

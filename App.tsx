@@ -249,12 +249,11 @@ const AppContent: React.FC = () => {
   }
 
   // 現在のパスからactiveViewを決定
-  const getActiveView = (): 'dashboard' | 'orgs' | 'surveys' | 'rankDefinition' | 'users' | 'growth' | 'add-test-users' => {
+  const getActiveView = (): 'dashboard' | 'orgs' | 'surveys' | 'rankDefinition' | 'growth' | 'add-test-users' => {
     const path = location.pathname;
     if (path.startsWith('/dashboard')) return 'dashboard';
     if (path.startsWith('/surveys')) return 'surveys';
     if (path.startsWith('/rank-definition')) return 'rankDefinition';
-    if (path.startsWith('/users')) return 'users';
     if (path.startsWith('/growth')) return 'growth';
     if (path.startsWith('/orgs')) return 'orgs';
     if (path.startsWith('/add-test-users')) return 'add-test-users';
@@ -304,14 +303,6 @@ const AppContent: React.FC = () => {
               element={
                 <ProtectedRoute auth={auth} allowedForSuperAdmin={false}>
                   <RankDefinitionSettings org={auth.org!} />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/users"
-              element={
-                <ProtectedRoute auth={auth} allowedForSuperAdmin={false}>
-                  <AdminView type="users" orgId={auth.org!.id} />
                 </ProtectedRoute>
               }
             />
