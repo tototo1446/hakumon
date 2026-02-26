@@ -116,6 +116,40 @@ export async function getSurveysByOrgFromSupabase(orgId: string): Promise<Survey
   }
 }
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * SupabaseからアンケートIDのみでアンケートを取得（公開リンク用・orgId不要）
+ * surveyIdがUUID形式の場合のみSupabaseを検索（SupabaseのidはUUID）
+ */
+export async function getSurveyByIdFromSupabaseByIdOnly(surveyId: string): Promise<Survey | null> {
+  if (!UUID_REGEX.test(surveyId)) return null;
+  try {
+    const { data, error } = await supabase
+      .from('surveys')
+      .select('*')
+      .eq('id', surveyId)
+      .eq('is_active', true)
+      .single();
+
+    if (error || !data) return null;
+
+    return {
+      id: data.id,
+      title: data.title,
+      description: data.description || '',
+      questions: (data.questions as any) || [],
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+      isActive: data.is_active ?? true,
+      createdBy: data.created_by,
+      orgId: data.organization_id,
+    };
+  } catch {
+    return null;
+  }
+}
+
 /**
  * SupabaseからアンケートIDでアンケートを取得
  */

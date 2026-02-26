@@ -159,20 +159,20 @@ const OrgModal: React.FC<OrgModalProps> = ({ isOpen, onClose, onSave, org }) => 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+    <div className="fixed inset-0 z-50 overflow-y-auto overflow-x-hidden">
+      <div className="flex items-end sm:items-center justify-center min-h-screen px-0 sm:px-4 pt-4 pb-0 sm:pb-20 text-center sm:block sm:p-0">
         {/* オーバーレイ */}
         <div 
           className="fixed inset-0 transition-opacity bg-slate-500 bg-opacity-75"
           onClick={onClose}
         ></div>
 
-        {/* モーダル */}
-        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+        {/* モーダル: モバイルでフル幅・下から表示 */}
+        <div className="inline-block w-full max-h-[90vh] sm:max-h-[85vh] align-bottom bg-white rounded-t-2xl sm:rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
           <form onSubmit={handleSubmit}>
-            <div className="bg-white px-6 pt-6 pb-4">
+            <div className="bg-white px-4 sm:px-6 pt-6 pb-4 overflow-y-auto max-h-[calc(90vh-8rem)] sm:max-h-none">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-2xl font-bold text-slate-900">
+                <h3 className="text-xl sm:text-2xl font-bold text-slate-900">
                   {org ? '法人情報を編集' : '新規法人を追加'}
                 </h3>
                 <button

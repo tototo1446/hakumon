@@ -35,7 +35,7 @@ const Layout: React.FC<LayoutProps> = ({ children, org, isSuperAdmin, onLogout, 
   };
 
   return (
-    <div className="flex h-screen bg-white overflow-hidden">
+    <div className="flex h-screen min-h-0 bg-white overflow-hidden w-full max-w-full">
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div 
@@ -142,7 +142,7 @@ const Layout: React.FC<LayoutProps> = ({ children, org, isSuperAdmin, onLogout, 
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto w-full lg:w-auto bg-white">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden w-full min-w-0 lg:w-auto bg-white">
         <header className="h-16 bg-white border-b border-slate-200 px-4 lg:px-8 flex items-center justify-between sticky top-0 z-10 shadow-sm">
           <div className="flex items-center gap-4">
             {/* Mobile Menu Button */}
@@ -170,7 +170,7 @@ const Layout: React.FC<LayoutProps> = ({ children, org, isSuperAdmin, onLogout, 
             </div>
           </div>
         </header>
-        <div className="p-4 lg:p-8 bg-white">
+        <div className="p-4 sm:p-6 lg:p-8 bg-white max-w-full">
           {children}
         </div>
       </main>

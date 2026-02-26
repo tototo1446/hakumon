@@ -78,6 +78,7 @@ export async function getOrganizations(): Promise<Organization[]> {
         password: (org as any).password, // パスワードを取得
         email: (org as any).email, // メールアドレスを取得
         minRequiredRespondents: (org as any).min_required_respondents ?? undefined,
+        logo: (org as any).logo || undefined,
       };
     }));
 
@@ -172,6 +173,7 @@ export async function getOrganizationById(id: string): Promise<Organization | nu
         password: (data as any).password, // パスワードを取得
         email: (data as any).email, // メールアドレスを取得
         minRequiredRespondents: (data as any).min_required_respondents ?? undefined,
+        logo: (data as any).logo || undefined,
       };
   } catch (error) {
     console.error('法人の取得に失敗しました:', error);
@@ -253,6 +255,7 @@ export async function getOrganizationBySlug(slug: string): Promise<Organization 
         password: (data as any).password, // パスワードを取得
         email: (data as any).email, // メールアドレスを取得
         minRequiredRespondents: (data as any).min_required_respondents ?? undefined,
+        logo: (data as any).logo || undefined,
       };
   } catch (error) {
     console.error('法人の取得に失敗しました:', error);
@@ -282,6 +285,9 @@ export async function createOrganization(
     };
     if (orgData.minRequiredRespondents != null) {
       insertData.min_required_respondents = orgData.minRequiredRespondents;
+    }
+    if (orgData.logo != null) {
+      insertData.logo = orgData.logo;
     }
 
     const { data, error } = await supabase
@@ -345,6 +351,7 @@ export async function updateOrganization(
     if (orgData.password) updateData.password = orgData.password; // パスワードを更新
     if (orgData.email !== undefined) updateData.email = orgData.email; // メールアドレスを更新（空文字列も許可）
     if (orgData.minRequiredRespondents !== undefined) updateData.min_required_respondents = orgData.minRequiredRespondents;
+    if (orgData.logo !== undefined) updateData.logo = orgData.logo;
 
     const { data, error } = await supabase
       .from('organizations')
@@ -410,6 +417,7 @@ export async function updateOrganization(
         password: (data as any).password, // パスワードを取得
         email: (data as any).email, // メールアドレスを取得
         minRequiredRespondents: (data as any).min_required_respondents ?? undefined,
+        logo: (data as any).logo || undefined,
       };
   } catch (error) {
     console.error('法人の更新に失敗しました:', error);
@@ -601,6 +609,7 @@ export async function getOrganizationByAccountId(accountId: string): Promise<Org
         password: (data as any).password, // パスワードを取得
         email: (data as any).email, // メールアドレスを取得
         minRequiredRespondents: (data as any).min_required_respondents ?? undefined,
+        logo: (data as any).logo || undefined,
       };
   } catch (error) {
     console.error('法人の取得に失敗しました:', error);
@@ -720,6 +729,7 @@ export async function verifyPasswordResetToken(resetToken: string): Promise<Orga
       password: (data as any).password,
       email: (data as any).email, // メールアドレスを取得
       minRequiredRespondents: (data as any).min_required_respondents ?? undefined,
+      logo: (data as any).logo || undefined,
     };
   } catch (error) {
     console.error('パスワード再設定トークンの検証に失敗しました:', error);

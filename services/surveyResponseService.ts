@@ -77,16 +77,36 @@ export function updateResponse(updatedResponse: SurveyResponse): void {
 }
 
 /**
+ * Supabaseに回答を保存（公開アンケートリンク経由の回答用）
+ */
+export async function saveResponseToSupabase(response: SurveyResponse): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('survey_responses')
+      .insert({
+        survey_id: response.surveyId,
+        respondent_name: response.respondentName || '匿名',
+        organization_id: response.orgId,
+        answers: response.answers,
+        submitted_at: response.submittedAt,
+      });
+
+    if (error) {
+      console.error('回答の保存に失敗しました:', error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('回答の保存中にエラーが発生しました:', err);
+    return false;
+  }
+}
+
+/**
  * 将来的にAPI連携する場合のインターフェース
  * 現時点ではlocalStorageを使用
  */
 export async function saveResponseToAPI(response: SurveyResponse): Promise<SurveyResponse> {
-  // TODO: API実装時にここを実装
-  // const response = await fetch(`/api/surveys/${response.surveyId}/responses`, {
-  //   method: 'POST',
-  //   body: JSON.stringify(response),
-  // });
-  // return response.json();
   saveResponse(response);
   return response;
 }

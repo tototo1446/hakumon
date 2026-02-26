@@ -6,6 +6,15 @@
 - [x] Dashboard: 「Powered by Gemini 3 Flash」フッターを削除
 - [x] 未使用インポート（Type）を削除
 
+## 2025-02-26: レスポンシブ対応
+
+- [x] index.css: 横スクロール防止、セーフエリア対応
+- [x] Layout: メインコンテンツ overflow 改善、パディング調整
+- [x] Dashboard: グリッド・チャート・統計カードのレスポンシブ調整
+- [x] Login: セーフエリア、min-w-0
+- [x] OrgModal/UserModal: モバイルでフル幅・下から表示、スクロール可能に
+- [x] AdminView/RespondentGrowthAnalysis: max-w-full, min-w-0
+
 ## 2025-02-26: AI戦略アドバイスのデータ閾値・法人別カスタム・手動分析
 
 - [x] 自動分析を廃止：タブ移動等で勝手に分析しない

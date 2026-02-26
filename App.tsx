@@ -11,8 +11,8 @@ import RankDefinitionSettings from './components/RankDefinitionSettings';
 import SurveyResponseForm from './components/SurveyResponseForm';
 import RespondentGrowthAnalysis from './components/RespondentGrowthAnalysis';
 import AddTestUsers from './components/AddTestUsers';
-import { findSurveyById } from './services/surveyService';
-import { saveResponse } from './services/surveyResponseService';
+import { findSurveyById, getSurveyByIdFromSupabaseByIdOnly } from './services/surveyService';
+import { saveResponse, saveResponseToSupabase } from './services/surveyResponseService';
 import { getOrganizationById, getOrganizations } from './services/organizationService';
 
 // 認証が必要なルートを保護するコンポーネント
@@ -57,6 +57,7 @@ const AppContent: React.FC = () => {
 
   const [organizationsForAdmin, setOrganizationsForAdmin] = useState<Organization[]>([]);
   const [publicSurvey, setPublicSurvey] = useState<Survey | null>(null);
+  const [publicSurveyLoading, setPublicSurveyLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -85,10 +86,20 @@ const AppContent: React.FC = () => {
     }
     
     if (surveyId) {
-      const survey = findSurveyById(surveyId);
-      if (survey && survey.isActive) {
-        setPublicSurvey(survey);
+      // 1. localStorageから取得（ログイン済みユーザーが同じブラウザで保存した場合）
+      const localSurvey = findSurveyById(surveyId);
+      if (localSurvey && localSurvey.isActive) {
+        setPublicSurvey(localSurvey);
+        return;
       }
+      // 2. Supabaseから取得（公開リンク経由の未ログインユーザー向け）
+      setPublicSurveyLoading(true);
+      getSurveyByIdFromSupabaseByIdOnly(surveyId).then((survey) => {
+        if (survey && survey.isActive) {
+          setPublicSurvey(survey);
+        }
+        setPublicSurveyLoading(false);
+      }).catch(() => setPublicSurveyLoading(false));
     }
   }, []);
 
@@ -165,10 +176,27 @@ const AppContent: React.FC = () => {
     }
   };
 
+  // 公開アンケート取得中はログイン画面を表示しない（読み込み表示）
+  if (publicSurveyLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="text-center">
+          <div className="w-10 h-10 border-4 border-sky-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-600">アンケートを読み込んでいます...</p>
+        </div>
+      </div>
+    );
+  }
+
   // 公開回答画面を表示中の場合（ログイン不要）
   if (publicSurvey) {
-    const handlePublicResponseSubmit = (response: any) => {
-      saveResponse(response);
+    const handlePublicResponseSubmit = async (response: any) => {
+      // Supabaseに保存を試みる（公開リンク経由のアンケートはSupabaseから取得したもの）
+      const savedToSupabase = await saveResponseToSupabase(response);
+      if (!savedToSupabase) {
+        // Supabase保存に失敗した場合はlocalStorageにフォールバック
+        saveResponse(response);
+      }
       alert('アンケートへのご回答ありがとうございました！');
       const url = new URL(window.location.href);
       url.searchParams.delete('survey');

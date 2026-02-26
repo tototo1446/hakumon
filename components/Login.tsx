@@ -296,12 +296,16 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   // パスワード再設定ページを表示
   if (resetToken && resetOrg) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white p-4 sm:p-6">
+      <div className="min-h-screen flex items-center justify-center bg-white p-4 sm:p-6 safe-area-padding">
         <div className="w-full max-w-md">
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden p-6 sm:p-8 border-t-4 border-sky-400">
             <div className="text-center mb-8 sm:mb-10">
               <div className="flex justify-center mb-4">
-                <img src="/YOHAKU_CMYK_1_main.jpg" alt="YOHAKU" className="h-12 sm:h-16 w-auto" />
+                {resetOrg.logo ? (
+                  <img src={resetOrg.logo} alt={resetOrg.name} className="h-12 sm:h-16 w-auto max-w-[180px] object-contain" />
+                ) : (
+                  <img src="/YOHAKU_CMYK_1_main.jpg" alt="YOHAKU" className="h-12 sm:h-16 w-auto" />
+                )}
               </div>
               <h1 className="text-xl sm:text-2xl font-bold text-slate-900 mb-1">パスワード再設定</h1>
               <p className="text-slate-500 text-sm sm:text-base">{resetOrg.name}</p>
@@ -407,17 +411,34 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white p-4 sm:p-6">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-white p-4 sm:p-6 safe-area-padding">
+      <div className="w-full max-w-md min-w-0">
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden p-6 sm:p-8 border-t-4 border-sky-400">
           <div className="text-center mb-8 sm:mb-10">
             {tenantOrg ? (
               <>
-                <div className="inline-block p-3 rounded-xl bg-sky-50 text-sky-500 mb-4">
-                  <span className="text-xl sm:text-2xl font-bold">🏢</span>
-                </div>
-                <div className="flex justify-center mb-3">
-                  <img src="/YOHAKU_CMYK_1_main.jpg" alt="YOHAKU" className="h-8 sm:h-10 w-auto" />
+                <div className="flex justify-center mb-4">
+                  {tenantOrg.logo ? (
+                    <>
+                      <img
+                        src={tenantOrg.logo}
+                        alt={tenantOrg.name}
+                        className="h-16 sm:h-20 w-auto max-w-[200px] object-contain"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                          const fallback = (e.target as HTMLImageElement).nextElementSibling;
+                          if (fallback) (fallback as HTMLElement).classList.remove('hidden');
+                        }}
+                      />
+                      <div className="hidden inline-block p-3 rounded-xl bg-sky-50 text-sky-500" aria-hidden="true">
+                        <span className="text-2xl sm:text-3xl font-bold">🏢</span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="inline-block p-3 rounded-xl bg-sky-50 text-sky-500">
+                      <span className="text-2xl sm:text-3xl font-bold">🏢</span>
+                    </div>
+                  )}
                 </div>
                 <h1 className="text-xl sm:text-2xl font-bold text-slate-900 mb-1">{tenantOrg.name}</h1>
                 <p className="text-slate-500 text-xs sm:text-sm">HAKUMON ログイン</p>

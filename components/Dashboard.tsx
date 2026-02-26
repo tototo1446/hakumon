@@ -209,7 +209,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 max-w-full min-w-0">
       {/* システム管理者用：法人選択セレクター */}
       {isSuperAdmin && organizations.length > 0 && (
         <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
@@ -282,7 +282,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Radar Chart Card */}
         <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200">
           <h3 className="text-base sm:text-lg font-bold text-slate-800 mb-4 sm:mb-6">
@@ -378,7 +378,7 @@ const Dashboard: React.FC<DashboardProps> = ({
       </div>
 
       {/* Stats Summary */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
         <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200">
           <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">
             {viewingOrg ? '組織平均スコア' : '総合スコア'}
@@ -513,7 +513,7 @@ const Dashboard: React.FC<DashboardProps> = ({
       {orgResponses.length > 0 && (
         <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200">
           <h3 className="text-base sm:text-lg font-bold text-slate-800 mb-4 sm:mb-6">リテラシー推移（月次）</h3>
-          <div className="h-64 sm:h-80 w-full">
+          <div className="h-56 sm:h-64 md:h-80 w-full min-w-0">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={(() => {
                 // 過去6ヶ月のデータを生成
@@ -535,8 +535,8 @@ const Dashboard: React.FC<DashboardProps> = ({
                 return months;
               })()}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 12 }} />
-                <YAxis domain={[0, 100]} tick={{ fill: '#64748b', fontSize: 12 }} />
+                <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 10 }} />
+                <YAxis domain={[0, 100]} tick={{ fill: '#64748b', fontSize: 10 }} />
                 <Tooltip />
                 <Legend />
                 <Line type="monotone" dataKey="score" stroke="#6366f1" strokeWidth={2} name="リテラシースコア" />
@@ -758,20 +758,20 @@ const Dashboard: React.FC<DashboardProps> = ({
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-wrap items-center gap-3 sm:gap-4">
                       <div className="text-right">
                         <p className="text-xs text-slate-600 mb-1">平均スコア</p>
-                        <p className="text-2xl font-bold text-sky-500">{latestScore}点</p>
+                        <p className="text-xl sm:text-2xl font-bold text-sky-500">{latestScore}点</p>
                       </div>
                       <div className="text-right">
                         <p className="text-xs text-slate-600 mb-1">成長率</p>
-                        <p className={`text-2xl font-bold ${growthRate >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        <p className={`text-xl sm:text-2xl font-bold ${growthRate >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                           {growthRate >= 0 ? '+' : ''}{growthRate}%
                         </p>
                       </div>
                       <button
                         onClick={() => onSelectOrg?.(orgItem)}
-                        className="px-3 py-2 text-sm text-sky-500 hover:text-sky-800 border border-sky-300 rounded-lg hover:bg-sky-50 transition-colors whitespace-nowrap"
+                        className="px-3 py-2 text-sm text-sky-500 hover:text-sky-800 border border-sky-300 rounded-lg hover:bg-sky-50 transition-colors whitespace-nowrap w-full sm:w-auto"
                       >
                         詳細を見る
                       </button>
@@ -818,7 +818,7 @@ const Dashboard: React.FC<DashboardProps> = ({
           {allOrganizations.length > 1 && (
             <div className="mt-6">
               <h4 className="text-sm font-medium text-slate-700 mb-4">法人間の成長率比較</h4>
-              <div className="h-64 w-full">
+              <div className="h-56 sm:h-64 w-full min-w-0 overflow-x-auto">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={allOrganizations.map(orgItem => {
                     const orgItemResponses = allOrgResponses.filter(r => r.orgId === orgItem.id);
