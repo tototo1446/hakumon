@@ -213,9 +213,9 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
           if (localStorageSurveys.length > 0) {
             setSurveys(localStorageSurveys);
           } else {
-            // デフォルトデータ
+            // デフォルトデータ（法人ごとに一意のIDでURLを生成）
             const defaultSurvey: Survey = {
-              id: 'survey-1',
+              id: crypto.randomUUID(),
               title: 'AI活用状況アンケート',
               description: 'AIツールの利用状況や活用レベルを調査するアンケートです。',
               questions: DEFAULT_SURVEY_QUESTIONS,
@@ -227,6 +227,7 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
             };
             setSurveys([defaultSurvey]);
             saveSurveys(orgId, [defaultSurvey]);
+            saveSurveyToSupabase(defaultSurvey); // 公開リンクでアクセス可能にする
           }
         }
       } catch (error) {
