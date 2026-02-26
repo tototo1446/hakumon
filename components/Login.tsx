@@ -26,6 +26,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [tenantLoading, setTenantLoading] = useState(true);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -33,9 +34,12 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     const token = params.get('resetToken'); // パスワード再設定トークン
     
     if (token) {
+      setTenantLoading(false);
       handleResetToken(token);
     } else if (tenantId) {
-      loadTenantOrganization(tenantId);
+      loadTenantOrganization(tenantId).finally(() => setTenantLoading(false));
+    } else {
+      setTenantLoading(false);
     }
   }, []);
 
@@ -410,6 +414,20 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     );
   }
 
+  // tenantパラメータありで取得中はローディング表示（管理者画面の一瞬表示を防止）
+  const params = new URLSearchParams(window.location.search);
+  const tenantId = params.get('tenant');
+  if (tenantId && tenantLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white p-4">
+        <div className="text-center">
+          <div className="w-10 h-10 border-4 border-sky-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-600">読み込み中...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-white p-4 sm:p-6 safe-area-padding">
       <div className="w-full max-w-md min-w-0">
@@ -423,7 +441,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                       <img
                         src={tenantOrg.logo}
                         alt={tenantOrg.name}
-                        className="h-20 sm:h-24 w-auto max-w-[280px] object-contain shrink-0"
+                        className="h-24 sm:h-28 w-auto max-w-[320px] object-contain shrink-0"
                         onError={(e) => {
                           (e.target as HTMLImageElement).style.display = 'none';
                           const fallback = (e.target as HTMLImageElement).nextElementSibling;
@@ -446,7 +464,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             ) : (
               <>
                 <div className="flex justify-center mb-2">
-                  <img src="/YOHAKU_CMYK_1_main.jpg" alt="YOHAKU" className="h-12 sm:h-16 w-auto object-contain shrink-0" />
+                  <img src="/YOHAKU_CMYK_1_main.jpg" alt="YOHAKU" className="h-16 sm:h-20 w-auto object-contain shrink-0" />
                 </div>
                 <p className="text-slate-500 text-sm sm:text-base">システム管理者用ログイン</p>
               </>
