@@ -423,7 +423,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                       <img
                         src={tenantOrg.logo}
                         alt={tenantOrg.name}
-                        className="h-16 sm:h-20 w-auto max-w-[200px] object-contain shrink-0"
+                        className="h-20 sm:h-24 w-auto max-w-[280px] object-contain shrink-0"
                         onError={(e) => {
                           (e.target as HTMLImageElement).style.display = 'none';
                           const fallback = (e.target as HTMLImageElement).nextElementSibling;
