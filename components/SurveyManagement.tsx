@@ -309,7 +309,19 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
       description: '',
       isActive: true,
     });
-    setIsModalOpen(true);
+    // 新規作成時はアンケート内容作成画面（SurveyEditor）を直接表示
+    const newDraftSurvey: Survey = {
+      id: `survey-${Date.now()}`,
+      title: '',
+      description: '',
+      questions: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      isActive: true,
+      createdBy: orgId,
+      orgId: orgId,
+    };
+    setEditingSurveyInEditor(newDraftSurvey);
   };
 
   const handleOpenEditModal = (survey: Survey) => {
@@ -327,9 +339,10 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
   };
 
   const handleSaveFromEditor = (updatedSurvey: Survey) => {
-    const updatedSurveys = surveys.map(s =>
-      s.id === updatedSurvey.id ? updatedSurvey : s
-    );
+    const exists = surveys.some(s => s.id === updatedSurvey.id);
+    const updatedSurveys = exists
+      ? surveys.map(s => (s.id === updatedSurvey.id ? updatedSurvey : s))
+      : [...surveys, updatedSurvey];
     saveSurveys(orgId, updatedSurveys);
     setSurveys(updatedSurveys);
     setEditingSurveyInEditor(null);

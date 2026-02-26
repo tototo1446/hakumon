@@ -591,7 +591,13 @@ const SurveyEditor: React.FC<SurveyEditorProps> = ({ survey, onSave, onCancel })
         <div className="sticky bottom-0 bg-white border-t border-slate-200 p-4">
           <div className="flex gap-2">
             <button
-              onClick={() => onSave(editedSurvey)}
+              onClick={() => {
+                if (!editedSurvey.title?.trim()) {
+                  alert('アンケートタイトルを入力してください。');
+                  return;
+                }
+                onSave(editedSurvey);
+              }}
               className="flex-1 px-4 py-2 bg-sky-400 text-white rounded-lg hover:bg-sky-500 transition-colors font-medium"
             >
               保存して終了

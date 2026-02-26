@@ -302,9 +302,9 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             <div className="text-center mb-8 sm:mb-10">
               <div className="flex justify-center mb-4">
                 {resetOrg.logo ? (
-                  <img src={resetOrg.logo} alt={resetOrg.name} className="h-12 sm:h-16 w-auto max-w-[180px] object-contain" />
+                  <img src={resetOrg.logo} alt={resetOrg.name} className="h-12 sm:h-16 w-auto max-w-[180px] object-contain shrink-0" />
                 ) : (
-                  <img src="/YOHAKU_CMYK_1_main.jpg" alt="YOHAKU" className="h-12 sm:h-16 w-auto" />
+                  <img src="/YOHAKU_CMYK_1_main.jpg" alt="YOHAKU" className="h-12 sm:h-16 w-auto object-contain shrink-0" />
                 )}
               </div>
               <h1 className="text-xl sm:text-2xl font-bold text-slate-900 mb-1">パスワード再設定</h1>
@@ -423,7 +423,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                       <img
                         src={tenantOrg.logo}
                         alt={tenantOrg.name}
-                        className="h-16 sm:h-20 w-auto max-w-[200px] object-contain"
+                        className="h-16 sm:h-20 w-auto max-w-[200px] object-contain shrink-0"
                         onError={(e) => {
                           (e.target as HTMLImageElement).style.display = 'none';
                           const fallback = (e.target as HTMLImageElement).nextElementSibling;
@@ -446,7 +446,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             ) : (
               <>
                 <div className="flex justify-center mb-4">
-                  <img src="/YOHAKU_CMYK_1_main.jpg" alt="YOHAKU" className="h-12 sm:h-16 w-auto" />
+                  <img src="/YOHAKU_CMYK_1_main.jpg" alt="YOHAKU" className="h-12 sm:h-16 w-auto object-contain shrink-0" />
                 </div>
                 <p className="text-slate-500 text-sm sm:text-base">システム管理者用ログイン</p>
               </>

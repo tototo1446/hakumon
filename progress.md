@@ -1,5 +1,12 @@
 # 進捗ログ
 
+## 2025-02-26: 新規アンケート作成時に内容編集画面を表示
+
+- [x] handleOpenAddModal: モーダルではなくSurveyEditorを直接表示
+- [x] handleSaveFromEditor: 新規アンケート（未登録）の場合は一覧に追加
+- [x] SurveyEditor: 保存時にタイトル未入力の場合はアラート表示
+- [x] 編集ボタンによる後からの編集は従来どおり
+
 ## 2025-02-17: AI分析機能・Gemini文言削除
 
 - [x] geminiService: エラーメッセージからGEMINI表記を削除

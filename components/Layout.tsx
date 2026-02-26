@@ -50,7 +50,7 @@ const Layout: React.FC<LayoutProps> = ({ children, org, isSuperAdmin, onLogout, 
       }`}>
         <div className="p-6 border-b border-slate-200">
           <div className="flex items-center gap-3 mb-2">
-            <img src="/YOHAKU_CMYK_1_main.jpg" alt="YOHAKU" className="h-8 w-auto" />
+            <img src="/YOHAKU_CMYK_3_main.jpg" alt="YOHAKU" className="h-8 w-auto object-contain shrink-0" />
           </div>
           <p className="text-xs text-slate-500 mt-1">Enterprise Dashboard</p>
         </div>
