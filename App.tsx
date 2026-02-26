@@ -59,6 +59,7 @@ const AppContent: React.FC = () => {
   const [publicSurvey, setPublicSurvey] = useState<Survey | null>(null);
   const [publicSurveyLoading, setPublicSurveyLoading] = useState(false);
   const [publicSurveyLoadAttempted, setPublicSurveyLoadAttempted] = useState(false);
+  const [publicSurveySubmitted, setPublicSurveySubmitted] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -213,6 +214,26 @@ const AppContent: React.FC = () => {
     );
   }
 
+  // 回答完了画面（ログイン画面を表示せず、お礼のみ表示）
+  if (publicSurveySubmitted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 max-w-md text-center">
+          <p className="text-slate-700 text-lg font-medium mb-6">アンケートへのご回答ありがとうございました！</p>
+          <button
+            onClick={() => {
+              setPublicSurveySubmitted(false);
+              navigate('/');
+            }}
+            className="inline-block px-6 py-3 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors"
+          >
+            トップへ戻る
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // 公開回答画面を表示中の場合（ログイン不要）
   if (publicSurvey) {
     const handlePublicResponseSubmit = async (response: any) => {
@@ -222,11 +243,11 @@ const AppContent: React.FC = () => {
         // Supabase保存に失敗した場合はlocalStorageにフォールバック
         saveResponse(response);
       }
-      alert('アンケートへのご回答ありがとうございました！');
       const url = new URL(window.location.href);
       url.searchParams.delete('survey');
       window.history.pushState({}, '', url.toString());
       setPublicSurvey(null);
+      setPublicSurveySubmitted(true);
     };
 
     const handlePublicResponseCancel = () => {
