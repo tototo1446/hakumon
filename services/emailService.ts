@@ -94,7 +94,7 @@ export async function sendPasswordResetEmail(
     
     const emailContent = `
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-HAKUMON パスワード再設定
+YOHAKU パスワード再設定
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ${org.name} 様
@@ -113,7 +113,7 @@ ${resetUrl}
 
     console.log('📧 パスワード再設定メール送信:');
     console.log(`送信先: ${org.email}`);
-    console.log(`件名: HAKUMON パスワード再設定`);
+    console.log(`件名: YOHAKU パスワード再設定`);
     console.log(`内容:\n${emailContent}`);
     console.log(`リセットURL: ${resetUrl}`);
     
@@ -131,7 +131,7 @@ ${resetUrl}
           },
           body: JSON.stringify({
             to: org.email,
-            subject: 'HAKUMON パスワード再設定',
+            subject: 'YOHAKU パスワード再設定',
             resetUrl: resetUrl,
             orgName: org.name,
             emailContent: emailContent
@@ -150,7 +150,7 @@ ${resetUrl}
           console.warn('📧 実際のメール送信には、Supabase Edge Functionsの実装が必要です。');
           console.warn('📝 メール内容:');
           console.warn(`送信先: ${org.email}`);
-          console.warn(`件名: HAKUMON パスワード再設定`);
+          console.warn(`件名: YOHAKU パスワード再設定`);
           console.warn(`リセットURL: ${resetUrl}`);
           return true; // 開発環境では成功として扱う
         }
@@ -160,7 +160,7 @@ ${resetUrl}
         console.warn('⚠️ メール送信APIが利用できないため、メール送信をシミュレートします。');
         console.warn('📧 メール内容:');
         console.warn(`送信先: ${org.email}`);
-        console.warn(`件名: HAKUMON パスワード再設定`);
+        console.warn(`件名: YOHAKU パスワード再設定`);
         console.warn(`リセットURL: ${resetUrl}`);
         return true;
       }
@@ -168,7 +168,7 @@ ${resetUrl}
       console.warn('⚠️ Supabase URLが設定されていないため、メール送信をシミュレートします。');
       console.warn('📧 メール内容:');
       console.warn(`送信先: ${org.email}`);
-      console.warn(`件名: HAKUMON パスワード再設定`);
+      console.warn(`件名: YOHAKU パスワード再設定`);
       console.warn(`リセットURL: ${resetUrl}`);
       return true; // 開発環境では成功として扱う
     }

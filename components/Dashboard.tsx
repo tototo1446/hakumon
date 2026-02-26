@@ -74,7 +74,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   const minRequiredRespondents = (viewingOrg || org).minRequiredRespondents ?? 5;
   const hasEnoughDataForInsight = orgResponses.length >= minRequiredRespondents;
 
-  const getInsightStorageKey = (orgId: string) => `hakumon_ai_insight_${orgId}`;
+  const getInsightStorageKey = (orgId: string) => `yohaku_ai_insight_${orgId}`;
 
   const fetchInsight = async () => {
     if (!hasEnoughDataForInsight) return;

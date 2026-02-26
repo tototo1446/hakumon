@@ -441,7 +441,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                   )}
                 </div>
                 <h1 className="text-xl sm:text-2xl font-bold text-slate-900 mb-1">{tenantOrg.name}</h1>
-                <p className="text-slate-500 text-xs sm:text-sm">HAKUMON ログイン</p>
+                <p className="text-slate-500 text-xs sm:text-sm">YOHAKU ログイン</p>
               </>
             ) : (
               <>

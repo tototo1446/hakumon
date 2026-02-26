@@ -44,12 +44,12 @@ serve(async (req) => {
         'Authorization': `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: 'HAKUMON <onboarding@resend.dev>', // Resendのデフォルトドメイン（独自ドメイン設定後は変更）
+        from: 'YOHAKU <onboarding@resend.dev>', // Resendのデフォルトドメイン（独自ドメイン設定後は変更）
         to: [to],
         subject: subject,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #0ea5e9;">HAKUMON パスワード再設定</h2>
+            <h2 style="color: #0ea5e9;">YOHAKU パスワード再設定</h2>
             <p>${orgName || 'ユーザー'} 様</p>
             <p>パスワード再設定のリクエストを受け付けました。</p>
             <p>以下のリンクから新しいパスワードを設定してください：</p>
