@@ -144,8 +144,14 @@ const AppContent: React.FC = () => {
   };
 
   const handleLogout = () => {
+    const orgSlug = auth.org?.slug;
+    const wasCorporateAccount = !auth.isSuperAdmin;
     setAuth({ org: null, viewingOrg: null, isAuthenticated: false, isSuperAdmin: false });
-    navigate('/');
+    if (wasCorporateAccount && orgSlug) {
+      navigate(`/?tenant=${orgSlug}`);
+    } else {
+      navigate('/');
+    }
   };
 
   const handleSelectOrg = (org: Organization | null) => {
