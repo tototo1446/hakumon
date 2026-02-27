@@ -55,13 +55,40 @@ export function getResponsesByRespondent(respondentName: string, orgId: string):
 }
 
 /**
- * 回答を削除
+ * 回答を削除（localStorage）
  */
 export function deleteResponse(responseId: string, orgId: string): void {
   const allResponses = getResponsesByOrg(orgId);
   const updatedResponses = allResponses.filter(response => response.id !== responseId);
   const key = `${STORAGE_KEY_PREFIX}${orgId}`;
   localStorage.setItem(key, JSON.stringify(updatedResponses));
+}
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Supabaseから回答を削除
+ */
+export async function deleteResponseFromSupabase(responseId: string): Promise<boolean> {
+  if (!UUID_REGEX.test(responseId)) {
+    console.warn('response_id がUUID形式でないため、Supabase削除をスキップします:', responseId);
+    return false;
+  }
+  try {
+    const { error } = await supabase
+      .from('survey_responses')
+      .delete()
+      .eq('id', responseId);
+
+    if (error) {
+      console.error('回答のSupabase削除に失敗しました:', error);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error('回答のSupabase削除中にエラーが発生しました:', error);
+    return false;
+  }
 }
 
 /**

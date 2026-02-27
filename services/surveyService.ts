@@ -72,7 +72,7 @@ export function findSurveyById(surveyId: string): Survey | null {
 }
 
 /**
- * アンケートを削除
+ * アンケートを削除（localStorage）
  */
 export function deleteSurvey(surveyId: string, orgId: string): void {
   const surveys = getSurveysByOrg(orgId);
@@ -81,6 +81,38 @@ export function deleteSurvey(surveyId: string, orgId: string): void {
 }
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Supabaseからアンケートを削除
+ * survey_responses は ON DELETE CASCADE により自動削除される
+ */
+export async function deleteSurveyFromSupabase(surveyId: string): Promise<boolean> {
+  if (!UUID_REGEX.test(surveyId)) {
+    console.warn('survey_id がUUID形式でないため、Supabase削除をスキップします:', surveyId);
+    return false;
+  }
+  try {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+    if (!supabaseUrl) {
+      console.warn('Supabase環境変数が設定されていないため、削除をスキップします。');
+      return false;
+    }
+
+    const { error } = await supabase
+      .from('surveys')
+      .delete()
+      .eq('id', surveyId);
+
+    if (error) {
+      console.error('アンケートのSupabase削除に失敗しました:', error);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error('アンケートのSupabase削除中にエラーが発生しました:', error);
+    return false;
+  }
+}
 
 /**
  * アンケートをSupabaseに保存（upsert）

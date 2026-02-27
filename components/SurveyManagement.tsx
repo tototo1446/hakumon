@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Survey, Question, QuestionOption, Role, QuestionType, SurveyResponse } from '../types';
 import SurveyEditor from './SurveyEditor';
 import SurveyResponseForm from './SurveyResponseForm';
-import { saveSurveys, getSurveysByOrg, getSurveysByOrgFromSupabase, saveSurveyToSupabase } from '../services/surveyService';
-import { getResponsesBySurveyFromSupabase } from '../services/surveyResponseService';
+import { saveSurveys, getSurveysByOrg, getSurveysByOrgFromSupabase, saveSurveyToSupabase, deleteSurveyFromSupabase } from '../services/surveyService';
+import { getResponsesBySurveyFromSupabase, deleteResponseFromSupabase } from '../services/surveyResponseService';
 
 interface SurveyManagementProps {
   userRole: Role;
@@ -621,12 +621,23 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
     setQuestionFormData({ ...questionFormData, rankDescriptions });
   };
 
-  const handleDeleteSurvey = (id: string, e: React.MouseEvent) => {
+  const handleDeleteSurvey = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (confirm('このアンケートを削除してもよろしいですか？')) {
+    if (!confirm('このアンケートを削除してもよろしいですか？\n関連する回答データもすべて削除されます。')) return;
+    try {
+      const deleted = await deleteSurveyFromSupabase(id);
+      if (!deleted) {
+        // Supabase削除がスキップされた場合（UUIDでない等）はlocalStorageのみ
+      }
       const updatedSurveys = surveys.filter(s => s.id !== id);
       saveSurveys(orgId, updatedSurveys);
       setSurveys(updatedSurveys);
+      if (viewingResponses?.id === id) {
+        handleCloseResponsesModal();
+      }
+    } catch (err) {
+      console.error('アンケートの削除に失敗しました:', err);
+      alert('アンケートの削除に失敗しました。');
     }
   };
 
@@ -703,6 +714,27 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
   const handleCloseResponsesModal = () => {
     setViewingResponses(null);
     setResponses([]);
+  };
+
+  const handleDeleteResponse = async (responseId: string) => {
+    if (!confirm('この回答を削除してもよろしいですか？')) return;
+    try {
+      const deleted = await deleteResponseFromSupabase(responseId);
+      if (deleted) {
+        setResponses(prev => prev.filter(r => r.id !== responseId));
+        if (viewingResponses) {
+          setResponseCounts(prev => ({
+            ...prev,
+            [viewingResponses.id]: Math.max(0, (prev[viewingResponses.id] ?? 1) - 1),
+          }));
+        }
+      } else {
+        alert('回答の削除に失敗しました。');
+      }
+    } catch (err) {
+      console.error('回答の削除に失敗しました:', err);
+      alert('回答の削除に失敗しました。');
+    }
   };
 
   // CSV形式に変換してダウンロード
@@ -1275,6 +1307,12 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
                             回答日時: {new Date(response.submittedAt).toLocaleString('ja-JP')}
                           </p>
                         </div>
+                        <button
+                          onClick={() => handleDeleteResponse(response.id)}
+                          className="px-3 py-1.5 bg-red-100 text-red-700 rounded text-xs hover:bg-red-200 transition-colors whitespace-nowrap"
+                        >
+                          削除
+                        </button>
                       </div>
 
                       <div className="space-y-3">

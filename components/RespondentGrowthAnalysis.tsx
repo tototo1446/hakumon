@@ -369,28 +369,29 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
       .sort((a, b) => a.timestamp - b.timestamp);
   }, [selectedRespondent, filteredResponses, rankDefinition]);
 
-  // 成長率を計算
+  // 成長率を計算（ランクベース）
   const growthRate = useMemo(() => {
     if (respondentHistory.length < 2) return null;
-    const firstScore = respondentHistory[0].overallScore;
-    const lastScore = respondentHistory[respondentHistory.length - 1].overallScore;
-    if (firstScore === 0) return null;
-    const rate = ((lastScore - firstScore) / firstScore) * 100;
-    return Math.round(rate * 10) / 10; // 小数点第1位まで
+    const firstRank = getRankFromScore(respondentHistory[0].overallScore);
+    const lastRank = getRankFromScore(respondentHistory[respondentHistory.length - 1].overallScore);
+    if (firstRank === 0) return null;
+    const rate = ((lastRank - firstRank) / firstRank) * 100;
+    return Math.round(rate * 10) / 10;
   }, [respondentHistory]);
 
-  // 回答者毎の最新スコアと成長率を計算（期間・属性フィルタ適用）
+  // 回答者毎の最新ランクと成長率を計算（期間・属性フィルタ適用、ランクベース）
   const respondentStats = useMemo(() => {
     return respondents.map(name => {
-      // フィルタ済みの回答データから該当する回答者のデータを取得
       const respondentResponses = filteredResponses
         .filter(response => response.respondentName === name)
         .map(response => {
           const scores = calculateScoreFromResponse(response, rankDefinition || undefined);
           const overallScore = calculateOverallScore(scores);
+          const rank = getRankFromScore(overallScore);
           return {
             ...response,
             overallScore,
+            rank,
             timestamp: new Date(response.submittedAt).getTime(),
           };
         })
@@ -398,23 +399,23 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
 
       if (respondentResponses.length === 0) return null;
 
-      const firstScore = respondentResponses[0].overallScore;
-      const lastScore = respondentResponses[respondentResponses.length - 1].overallScore;
-      const growthRate = firstScore > 0 
-        ? Math.round(((lastScore - firstScore) / firstScore) * 100 * 10) / 10
+      const firstRank = respondentResponses[0].rank;
+      const lastRank = respondentResponses[respondentResponses.length - 1].rank;
+      const growthRate = firstRank > 0 
+        ? Math.round(((lastRank - firstRank) / firstRank) * 100 * 10) / 10
         : 0;
 
       return {
         name,
-        firstScore,
-        lastScore,
+        firstRank,
+        lastRank,
         growthRate,
         responseCount: respondentResponses.length,
       };
     }).filter(Boolean) as Array<{
       name: string;
-      firstScore: number;
-      lastScore: number;
+      firstRank: number;
+      lastRank: number;
       growthRate: number;
       responseCount: number;
     }>;
@@ -536,18 +537,19 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
       });
       const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
       
-      // 成長率を計算（時系列でソートした最初と最後のスコアから）
-      const responsesWithScores = data.responses.map(r => {
+      // 成長率を計算（ランクベース、時系列でソートした最初と最後から）
+      const responsesWithRanks = data.responses.map(r => {
         const s = calculateScoreFromResponse(r, rankDefinition || undefined);
+        const rank = getRankFromScore(calculateOverallScore(s));
         return {
           response: r,
-          score: calculateOverallScore(s),
+          rank,
           timestamp: new Date(r.submittedAt).getTime(),
         };
       }).sort((a, b) => a.timestamp - b.timestamp);
       
-      const growthRate = responsesWithScores.length >= 2 && responsesWithScores[0].score > 0
-        ? Math.round(((responsesWithScores[responsesWithScores.length - 1].score - responsesWithScores[0].score) / responsesWithScores[0].score) * 100 * 10) / 10
+      const growthRate = responsesWithRanks.length >= 2 && responsesWithRanks[0].rank > 0
+        ? Math.round(((responsesWithRanks[responsesWithRanks.length - 1].rank - responsesWithRanks[0].rank) / responsesWithRanks[0].rank) * 100 * 10) / 10
         : 0;
       
       return {
@@ -585,18 +587,19 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
       });
       const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
       
-      // 成長率を計算（時系列でソートした最初と最後のスコアから）
-      const responsesWithScores = data.responses.map(r => {
+      // 成長率を計算（ランクベース、時系列でソートした最初と最後から）
+      const responsesWithRanks = data.responses.map(r => {
         const s = calculateScoreFromResponse(r, rankDefinition || undefined);
+        const rank = getRankFromScore(calculateOverallScore(s));
         return {
           response: r,
-          score: calculateOverallScore(s),
+          rank,
           timestamp: new Date(r.submittedAt).getTime(),
         };
       }).sort((a, b) => a.timestamp - b.timestamp);
       
-      const growthRate = responsesWithScores.length >= 2 && responsesWithScores[0].score > 0
-        ? Math.round(((responsesWithScores[responsesWithScores.length - 1].score - responsesWithScores[0].score) / responsesWithScores[0].score) * 100 * 10) / 10
+      const growthRate = responsesWithRanks.length >= 2 && responsesWithRanks[0].rank > 0
+        ? Math.round(((responsesWithRanks[responsesWithRanks.length - 1].rank - responsesWithRanks[0].rank) / responsesWithRanks[0].rank) * 100 * 10) / 10
         : 0;
       
       return {
@@ -829,38 +832,36 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
               const latestResponses = sortedResponses.slice(0, Math.min(10, sortedResponses.length));
               const olderResponses = sortedResponses.slice(10, Math.min(20, sortedResponses.length));
 
-              const latestScore = latestResponses.length > 0
-                ? calculateOverallScore(calculateOrgAverageScore(orgItem.id, latestResponses, orgItemRankDefinition || undefined))
-                : 0;
-              
-              const olderScore = olderResponses.length > 0
-                ? calculateOverallScore(calculateOrgAverageScore(orgItem.id, olderResponses, orgItemRankDefinition || undefined))
-                : latestScore;
+              const calcAvgRank = (resps: SurveyResponse[]) => {
+                if (resps.length === 0) return 0;
+                let rankSum = 0;
+                resps.forEach(r => {
+                  const scores = calculateScoreFromResponse(r, orgItemRankDefinition || undefined);
+                  rankSum += getRankFromScore(calculateOverallScore(scores));
+                });
+                return Math.round((rankSum / resps.length) * 10) / 10;
+              };
+              const latestAvgRank = calcAvgRank(latestResponses);
+              const olderAvgRank = calcAvgRank(olderResponses);
+              const growthRate = olderAvgRank > 0 ? Math.round(((latestAvgRank - olderAvgRank) / olderAvgRank) * 100) : 0;
 
-              const growthRate = olderScore > 0 
-                ? Math.round(((latestScore - olderScore) / olderScore) * 100)
-                : 0;
-
-              // 月次推移データを計算
-              const monthlyData = new Map<string, { totalScore: number; count: number }>();
+              // 月次推移データを計算（ランクベース）
+              const monthlyData = new Map<string, { rankSum: number; count: number }>();
               filteredOrgResponses.forEach(response => {
                 const date = new Date(response.submittedAt);
                 const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-                const scores = calculateOrgAverageScore(orgItem.id, [response], orgItemRankDefinition || undefined);
-                const overallScore = calculateOverallScore(scores);
-                
-                if (!monthlyData.has(monthKey)) {
-                  monthlyData.set(monthKey, { totalScore: 0, count: 0 });
-                }
+                const scores = calculateScoreFromResponse(response, orgItemRankDefinition || undefined);
+                const rank = getRankFromScore(calculateOverallScore(scores));
+                if (!monthlyData.has(monthKey)) monthlyData.set(monthKey, { rankSum: 0, count: 0 });
                 const data = monthlyData.get(monthKey)!;
-                data.totalScore += overallScore;
+                data.rankSum += rank;
                 data.count += 1;
               });
 
               const trendData = Array.from(monthlyData.entries())
                 .map(([month, data]) => ({
                   month: month.replace('-', '/'),
-                  score: Math.round(data.totalScore / data.count),
+                  avgRank: Math.round((data.rankSum / data.count) * 10) / 10,
                 }))
                 .sort((a, b) => a.month.localeCompare(b.month))
                 .slice(-6); // 直近6ヶ月
@@ -892,8 +893,8 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="text-right">
-                        <p className="text-xs text-slate-600 mb-1">平均スコア</p>
-                        <p className="text-2xl font-bold text-sky-500">{latestScore}点</p>
+                        <p className="text-xs text-slate-600 mb-1">平均ランク</p>
+                        <p className="text-2xl font-bold text-sky-500">{latestAvgRank.toFixed(1)} / 5</p>
                       </div>
                       <div className="text-right">
                         <p className="text-xs text-slate-600 mb-1">成長率</p>
@@ -921,21 +922,21 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
                             tick={{ fill: '#64748b', fontSize: 10 }}
                           />
                           <YAxis 
-                            domain={[0, 100]}
+                            domain={[0, 5]}
                             tick={{ fill: '#64748b', fontSize: 10 }}
                           />
                           <Tooltip 
-                            formatter={(value: number) => [`${value}点`, '平均スコア']}
+                            formatter={(value: number) => [`${value}`, '平均ランク']}
                             labelFormatter={(label) => `期間: ${label}`}
                           />
                           <Line 
                             type="monotone" 
-                            dataKey="score" 
+                            dataKey="avgRank" 
                             stroke="#6366f1" 
                             strokeWidth={2}
                             dot={{ r: 4 }}
                             activeDot={{ r: 6 }}
-                            name="平均スコア"
+                            name="平均ランク"
                           />
                         </LineChart>
                       </ResponsiveContainer>
@@ -977,22 +978,23 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
                     const latestResponses = sortedResponses.slice(0, Math.min(10, sortedResponses.length));
                     const olderResponses = sortedResponses.slice(10, Math.min(20, sortedResponses.length));
 
-                    const latestScore = latestResponses.length > 0
-                      ? calculateOverallScore(calculateOrgAverageScore(orgItem.id, latestResponses, orgItemRankDefinition || undefined))
-                      : 0;
-                    
-                    const olderScore = olderResponses.length > 0
-                      ? calculateOverallScore(calculateOrgAverageScore(orgItem.id, olderResponses, orgItemRankDefinition || undefined))
-                      : latestScore;
-
-                    const growthRate = olderScore > 0 
-                      ? Math.round(((latestScore - olderScore) / olderScore) * 100)
-                      : 0;
+                    const calcAvgRank = (resps: SurveyResponse[]) => {
+                      if (resps.length === 0) return 0;
+                      let rankSum = 0;
+                      resps.forEach(r => {
+                        const scores = calculateScoreFromResponse(r, orgItemRankDefinition || undefined);
+                        rankSum += getRankFromScore(calculateOverallScore(scores));
+                      });
+                      return Math.round((rankSum / resps.length) * 10) / 10;
+                    };
+                    const latestAvgRank = calcAvgRank(latestResponses);
+                    const olderAvgRank = calcAvgRank(olderResponses);
+                    const growthRate = olderAvgRank > 0 ? Math.round(((latestAvgRank - olderAvgRank) / olderAvgRank) * 100) : 0;
 
                     return {
                       name: orgItem.name.length > 10 ? orgItem.name.substring(0, 10) + '...' : orgItem.name,
-                      growthRate: growthRate,
-                      avgScore: latestScore,
+                      growthRate,
+                      avgRank: latestAvgRank,
                     };
                   })}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
@@ -1011,7 +1013,7 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
                         if (name === 'growthRate') {
                           return [`${value >= 0 ? '+' : ''}${value}%`, '成長率'];
                         }
-                        return [`${value}点`, '平均スコア'];
+                        return [`${value}`, '平均ランク'];
                       }}
                     />
                     <Legend />
@@ -1208,7 +1210,7 @@ const RespondentGrowthAnalysis: React.FC<RespondentGrowthAnalysisProps> = ({
                   formatter={(value: number, name: string, props: any) => [
                     `${value}%`, 
                     '成長率',
-                    `初回: ${props.payload.firstScore}点 → 最新: ${props.payload.lastScore}点 (回答数: ${props.payload.responseCount})`
+                    `初回: ランク${props.payload.firstRank} → 最新: ランク${props.payload.lastRank} (回答数: ${props.payload.responseCount})`
                   ]}
                   labelFormatter={(label) => `回答者: ${label}`}
                 />

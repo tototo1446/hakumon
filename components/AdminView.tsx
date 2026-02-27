@@ -27,8 +27,8 @@ interface AdminViewProps {
 }
 
 const AdminView: React.FC<AdminViewProps> = ({ type, onSelectOrg, orgId }) => {
-  const [orgs, setOrgs] = useState<Organization[]>(MOCK_ORGS);
-  const [users, setUsers] = useState<User[]>(MOCK_USERS);
+  const [orgs, setOrgs] = useState<Organization[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [isOrgModalOpen, setIsOrgModalOpen] = useState(false);
   const [editingOrg, setEditingOrg] = useState<Organization | null>(null);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
@@ -48,18 +48,17 @@ const AdminView: React.FC<AdminViewProps> = ({ type, onSelectOrg, orgId }) => {
   }, [type, orgId]);
 
   const loadOrganizations = async () => {
+    setOrgs([]); // 一瞬のデモデータ表示を防ぐ
     setLoading(true);
     try {
       const data = await getOrganizations();
       if (data.length > 0) {
         setOrgs(data);
       } else {
-        // Supabaseにデータがない場合は、MOCK_ORGSを使用（後方互換性）
         setOrgs(MOCK_ORGS);
       }
     } catch (error) {
       console.error('法人一覧の読み込みに失敗しました:', error);
-      // エラー時はMOCK_ORGSを使用
       setOrgs(MOCK_ORGS);
     } finally {
       setLoading(false);
@@ -67,6 +66,7 @@ const AdminView: React.FC<AdminViewProps> = ({ type, onSelectOrg, orgId }) => {
   };
 
   const loadUsers = async () => {
+    setUsers([]); // 一瞬のデモデータ表示を防ぐ
     setLoading(true);
     try {
       const data = await getUsers(orgId);
@@ -266,6 +266,12 @@ const AdminView: React.FC<AdminViewProps> = ({ type, onSelectOrg, orgId }) => {
         )}
       </div>
 
+      {loading ? (
+        <div className="bg-white shadow-sm border border-slate-200 rounded-xl p-12 text-center">
+          <div className="inline-block w-8 h-8 border-4 border-sky-400 border-t-transparent rounded-full animate-spin mb-4" />
+          <p className="text-slate-600">読み込み中...</p>
+        </div>
+      ) : (
       <div className="bg-white shadow-sm border border-slate-200 rounded-xl overflow-hidden overflow-x-auto">
         <table className="min-w-full divide-y divide-slate-200">
           <thead className="bg-slate-50">
@@ -277,7 +283,6 @@ const AdminView: React.FC<AdminViewProps> = ({ type, onSelectOrg, orgId }) => {
                   <th className="px-3 sm:px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider hidden lg:table-cell">識別ID</th>
                   <th className="px-3 sm:px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider hidden md:table-cell">登録日</th>
                   <th className="px-3 sm:px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">メンバー数</th>
-                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider hidden lg:table-cell">平均スコア</th>
                 </>
               ) : (
                 <>
@@ -320,11 +325,6 @@ const AdminView: React.FC<AdminViewProps> = ({ type, onSelectOrg, orgId }) => {
                   </td>
                   <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-slate-500 hidden md:table-cell">{org.createdAt}</td>
                   <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-slate-500">{org.memberCount} 名</td>
-                  <td className="px-3 sm:px-6 py-4 whitespace-nowrap hidden lg:table-cell">
-                    <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${org.avgScore > 70 ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}`}>
-                      {org.avgScore}
-                    </span>
-                  </td>
                   <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex flex-wrap justify-end gap-1 sm:gap-2">
                       <button 
@@ -417,6 +417,7 @@ const AdminView: React.FC<AdminViewProps> = ({ type, onSelectOrg, orgId }) => {
           </tbody>
         </table>
       </div>
+      )}
 
       {/* 法人編集/追加モーダル */}
       {type === 'orgs' && (
