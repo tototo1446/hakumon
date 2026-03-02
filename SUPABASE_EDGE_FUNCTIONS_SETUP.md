@@ -47,7 +47,7 @@ npx supabase --help
 ### 2. Supabaseにログイン
 
 ```bash
-cd /Users/p10516/Desktop/個人用/HAKUMON
+cd /Users/p10516/Desktop/個人用/YOHAKU
 supabase login
 ```
 

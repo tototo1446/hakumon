@@ -154,8 +154,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         const trimmedInputPassword = password.trim();
 
         if (trimmedStoredPassword === trimmedInputPassword || password === 'demo123') {
-          // システム管理者（account_id=hakumon または slug=system）の場合は isSuperAdmin
-          const isSuperAdmin = org.accountId === 'hakumon' || org.slug === 'system';
+          // システム管理者（account_id=yohaku または slug=system）の場合は isSuperAdmin
+          const isSuperAdmin = org.accountId === 'yohaku' || org.slug === 'system';
           onLogin(org, isSuperAdmin);
         } else {
           // より詳細なエラーメッセージを表示
@@ -234,7 +234,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         return;
       }
 
-      const isSuperAdmin = org.accountId === 'hakumon' || org.slug === 'system';
+      const isSuperAdmin = org.accountId === 'yohaku' || org.slug === 'system';
       const emailSent = await sendPasswordResetEmail(org, token, isSuperAdmin);
 
       if (emailSent) {
