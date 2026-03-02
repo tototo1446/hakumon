@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase';
+import { supabase, type Database } from '../lib/supabase';
 import { Organization } from '../types';
 import { calculateOrgAverageScore, calculateOverallScore } from './literacyScoreService';
 import { getRankDefinition } from './rankDefinitionService';
@@ -276,12 +276,12 @@ export async function createOrganization(
       throw new Error('Supabase環境変数が設定されていません。');
     }
 
-    const insertData: Record<string, unknown> = {
+    const insertData: Database['public']['Tables']['organizations']['Insert'] = {
       slug: orgData.slug,
       name: orgData.name,
-      account_id: orgData.accountId, // アカウントIDを保存
-      password: orgData.password, // パスワードを保存
-      email: orgData.email, // メールアドレスを保存
+      account_id: orgData.accountId || '',
+      password: orgData.password || '',
+      email: orgData.email || '',
     };
     if (orgData.minRequiredRespondents != null) {
       insertData.min_required_respondents = orgData.minRequiredRespondents;
@@ -341,17 +341,17 @@ export async function updateOrganization(
       throw new Error('Supabase環境変数が設定されていません。');
     }
 
-    const updateData: any = {
+    const updateData: Database['public']['Tables']['organizations']['Update'] = {
       updated_at: new Date().toISOString(),
     };
 
     if (orgData.name) updateData.name = orgData.name;
     if (orgData.slug) updateData.slug = orgData.slug;
     if (orgData.accountId) updateData.account_id = orgData.accountId;
-    if (orgData.password) updateData.password = orgData.password; // パスワードを更新
-    if (orgData.email !== undefined) updateData.email = orgData.email; // メールアドレスを更新（空文字列も許可）
+    if (orgData.password) updateData.password = orgData.password;
+    if (orgData.email !== undefined) updateData.email = orgData.email;
     if (orgData.minRequiredRespondents !== undefined) updateData.min_required_respondents = orgData.minRequiredRespondents;
-    if (orgData.logo !== undefined) updateData.logo = orgData.logo;
+    if (orgData.logo !== undefined) updateData.logo = orgData.logo ?? null;
 
     const { data, error } = await supabase
       .from('organizations')
@@ -450,6 +450,40 @@ export async function deleteOrganization(id: string): Promise<boolean> {
   } catch (error) {
     console.error('法人の削除に失敗しました:', error);
     throw error;
+  }
+}
+
+/**
+ * 法人名の重複チェック
+ */
+export async function checkNameAvailability(name: string, excludeId?: string): Promise<boolean> {
+  try {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+    if (!supabaseUrl) {
+      console.warn('Supabase環境変数が設定されていないため、法人名の重複チェックをスキップします。');
+      return true;
+    }
+
+    let query = supabase
+      .from('organizations')
+      .select('id')
+      .eq('name', name);
+
+    if (excludeId) {
+      query = query.neq('id', excludeId);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('法人名の重複チェックエラー:', error);
+      return false;
+    }
+
+    return (data || []).length === 0;
+  } catch (error) {
+    console.error('法人名の重複チェックに失敗しました:', error);
+    return false;
   }
 }
 

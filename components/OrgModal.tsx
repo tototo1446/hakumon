@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Organization } from '../types';
 import { generateRandomOrgId, generateRandomSlug } from '../utils/idGenerator';
-import { checkSlugAvailability } from '../services/organizationService';
+import { checkNameAvailability, checkSlugAvailability } from '../services/organizationService';
 
 interface OrgModalProps {
   isOpen: boolean;
@@ -100,6 +100,16 @@ const OrgModal: React.FC<OrgModalProps> = ({ isOpen, onClose, onSave, org }) => 
     if (!formData.name.trim() || !formData.slug.trim()) {
       alert('法人名とSlugは必須項目です。');
       return;
+    }
+
+    // 法人名の重複チェック（新規作成時、または編集時に名前が変更された場合）
+    const nameChanged = org ? formData.name.trim() !== org.name : true;
+    if (nameChanged) {
+      const isNameAvailable = await checkNameAvailability(formData.name.trim(), org?.id);
+      if (!isNameAvailable) {
+        alert('この法人名は既に使用されています。別の名前を入力してください。');
+        return;
+      }
     }
 
     // Slugの重複チェック（新規作成時、または編集時にSlugが変更された場合）
