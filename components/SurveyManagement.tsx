@@ -870,6 +870,20 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
       </div>
 
       {/* アンケート一覧 */}
+      {surveys.length === 0 ? (
+        <div className="bg-white rounded-lg border border-slate-200 p-12 text-center">
+          <div className="text-slate-400 text-5xl mb-4">&#128203;</div>
+          <h3 className="text-lg font-semibold text-slate-700 mb-2">アンケートがまだありません</h3>
+          <p className="text-slate-500 mb-6">「新規アンケート作成」ボタンから最初のアンケートを作成しましょう</p>
+          <button
+            onClick={handleOpenAddModal}
+            className="px-6 py-3 bg-sky-400 text-white rounded-lg hover:bg-sky-500 transition-colors inline-flex items-center gap-2"
+          >
+            <span>+</span>
+            新規アンケート作成
+          </button>
+        </div>
+      ) : (
       <div className="grid gap-4">
         {surveys.map((survey) => (
           <div
@@ -971,6 +985,7 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ userRole, orgId }) 
           </div>
         ))}
       </div>
+      )}
 
       {/* アンケート編集モーダル */}
       {isModalOpen && (
