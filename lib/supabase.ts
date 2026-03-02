@@ -41,6 +41,10 @@ export interface Database {
           email: string;
           min_required_respondents: number;
           logo: string | null;
+          description: string | null;
+          website: string | null;
+          address: string | null;
+          phone: string | null;
           created_at: string;
           updated_at: string;
           password_reset_token: string | null;
@@ -55,6 +59,10 @@ export interface Database {
           email: string;
           min_required_respondents?: number;
           logo?: string | null;
+          description?: string | null;
+          website?: string | null;
+          address?: string | null;
+          phone?: string | null;
           created_at?: string;
           updated_at?: string;
           password_reset_token?: string | null;
@@ -69,6 +77,10 @@ export interface Database {
           email?: string;
           min_required_respondents?: number;
           logo?: string | null;
+          description?: string | null;
+          website?: string | null;
+          address?: string | null;
+          phone?: string | null;
           created_at?: string;
           updated_at?: string;
           password_reset_token?: string | null;

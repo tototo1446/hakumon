@@ -289,6 +289,18 @@ export async function createOrganization(
     if (orgData.logo != null) {
       insertData.logo = orgData.logo;
     }
+    if (orgData.description != null) {
+      insertData.description = orgData.description;
+    }
+    if (orgData.website != null) {
+      insertData.website = orgData.website;
+    }
+    if (orgData.address != null) {
+      insertData.address = orgData.address;
+    }
+    if (orgData.phone != null) {
+      insertData.phone = orgData.phone;
+    }
 
     const { data, error } = await supabase
       .from('organizations')
@@ -310,16 +322,15 @@ export async function createOrganization(
       createdAt: data.created_at.split('T')[0],
       memberCount: 0,
       avgScore: 0,
-      accountId: (data as any).account_id || data.slug,
-      password: (data as any).password || orgData.password, // Supabaseから取得したパスワードを使用
-      // その他のフィールドは現在のスキーマにないため、デフォルト値を使用
-      logo: orgData.logo,
-      description: orgData.description,
-      website: orgData.website,
-      address: orgData.address,
-      phone: orgData.phone,
-      email: orgData.email,
-      minRequiredRespondents: (data as any).min_required_respondents ?? orgData.minRequiredRespondents,
+      accountId: data.account_id || data.slug,
+      password: data.password || orgData.password,
+      logo: data.logo ?? orgData.logo,
+      description: data.description ?? orgData.description,
+      website: data.website ?? orgData.website,
+      address: data.address ?? orgData.address,
+      phone: data.phone ?? orgData.phone,
+      email: data.email || orgData.email,
+      minRequiredRespondents: data.min_required_respondents ?? orgData.minRequiredRespondents,
     };
   } catch (error) {
     console.error('法人の作成に失敗しました:', error);
@@ -352,6 +363,10 @@ export async function updateOrganization(
     if (orgData.email !== undefined) updateData.email = orgData.email;
     if (orgData.minRequiredRespondents !== undefined) updateData.min_required_respondents = orgData.minRequiredRespondents;
     if (orgData.logo !== undefined) updateData.logo = orgData.logo ?? null;
+    if (orgData.description !== undefined) updateData.description = orgData.description ?? null;
+    if (orgData.website !== undefined) updateData.website = orgData.website ?? null;
+    if (orgData.address !== undefined) updateData.address = orgData.address ?? null;
+    if (orgData.phone !== undefined) updateData.phone = orgData.phone ?? null;
 
     const { data, error } = await supabase
       .from('organizations')
