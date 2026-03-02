@@ -20,6 +20,7 @@ const SurveyResponseForm: React.FC<SurveyResponseFormProps> = ({
   const [answers, setAnswers] = useState<{ [questionId: string]: string | string[] }>({});
   const [respondentName, setRespondentName] = useState<string>('');
   const [errors, setErrors] = useState<{ [questionId: string]: string }>({});
+  const [submitError, setSubmitError] = useState<string>('');
 
   // 名前質問を探して初期値を設定
   useEffect(() => {
@@ -57,7 +58,12 @@ const SurveyResponseForm: React.FC<SurveyResponseFormProps> = ({
 
     // エラーをクリア
     if (errors[questionId]) {
-      setErrors({ ...errors, [questionId]: '' });
+      const newErrors = { ...errors };
+      delete newErrors[questionId];
+      setErrors(newErrors);
+      if (Object.keys(newErrors).length === 0) {
+        setSubmitError('');
+      }
     }
   };
 
@@ -89,8 +95,24 @@ const SurveyResponseForm: React.FC<SurveyResponseFormProps> = ({
     e.preventDefault();
 
     if (!validateForm()) {
+      setSubmitError('未入力の必須項目があります。赤字の項目をご確認ください。');
+      // 最初のエラー箇所にスクロール
+      const firstErrorQuestion = survey.questions.find(q => {
+        if (q.id === 'q-name-default' && !respondentName.trim()) return true;
+        if (!q.required) return false;
+        const a = answers[q.id];
+        return !a || (Array.isArray(a) && a.length === 0);
+      });
+      if (firstErrorQuestion) {
+        setTimeout(() => {
+          const el = document.getElementById(`question-${firstErrorQuestion.id}`);
+          el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 0);
+      }
       return;
     }
+
+    setSubmitError('');
 
     if (!respondentName.trim()) {
       alert('名前を入力してください。');
@@ -297,7 +319,13 @@ const SurveyResponseForm: React.FC<SurveyResponseFormProps> = ({
             });
             return sortedQuestions;
           })().map((question, index) => (
-            <div key={question.id} className="bg-white rounded-lg border-2 border-slate-200 p-4 sm:p-6">
+            <div
+              key={question.id}
+              id={`question-${question.id}`}
+              className={`bg-white rounded-lg border-2 p-4 sm:p-6 transition-colors ${
+                errors[question.id] ? 'border-red-400 bg-red-50/30' : 'border-slate-200'
+              }`}
+            >
               <div className="mb-4">
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   {index + 1}. {question.title}
@@ -308,6 +336,14 @@ const SurveyResponseForm: React.FC<SurveyResponseFormProps> = ({
             </div>
           ))}
         </div>
+
+        {/* 送信エラーメッセージ */}
+        {submitError && (
+          <div className="bg-red-50 border border-red-300 rounded-lg p-4 text-red-700 text-sm flex items-center gap-2">
+            <span>!</span>
+            <span>{submitError}</span>
+          </div>
+        )}
 
         {/* 送信ボタン */}
         <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-slate-200">

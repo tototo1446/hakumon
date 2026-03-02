@@ -101,6 +101,8 @@ export interface SurveyResponse {
   orgId: string; // 法人ID
   answers: Answer[]; // 回答データ
   submittedAt: string; // 回答日時
+  literacyScore?: number; // リテラシースコア
+  timeReductionHours?: number; // 業務削減時間（時間）
 }
 
 // ランク定義関連の型定義
