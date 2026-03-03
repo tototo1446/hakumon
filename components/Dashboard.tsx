@@ -650,36 +650,43 @@ const Dashboard: React.FC<DashboardProps> = ({
               </select>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredQuestionCards.map(({ key, surveyTitle, surveyTotal, question }) => (
-              <div key={key} className={cardClass + ' p-4 sm:p-5'}>
-                <h4 className="text-sm font-semibold text-slate-800 mb-1">{question.title}</h4>
-                <p className="text-xs text-slate-500 mb-3">{surveyTitle}（{surveyTotal}件回答）</p>
-                {question.description && (
-                  <p className="text-xs text-slate-600 mb-3">{question.description}</p>
-                )}
-                <div className="space-y-3">
-                  {question.distribution.map((item, dIdx) => {
-                    const colors = ['bg-sky-500', 'bg-teal-500', 'bg-emerald-500', 'bg-violet-500', 'bg-pink-500', 'bg-amber-500'];
-                    return (
-                      <div key={dIdx}>
-                        <div className="flex justify-between text-xs sm:text-sm mb-0.5">
-                          <span className="text-slate-700 truncate mr-2">{item.label}</span>
-                          <span className="text-slate-600 font-medium shrink-0">{item.count}名 ({item.pct}%)</span>
+          {filteredQuestionCards.length > 0 && filteredQuestionCards[0].surveyTotal === 0 ? (
+            <div className={cardClass + ' p-8 sm:p-12 text-center'}>
+              <p className="text-slate-400 text-lg mb-2">まだ回答がありません</p>
+              <p className="text-slate-400 text-sm">アンケートの公開リンクを共有して回答を集めましょう</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {filteredQuestionCards.map(({ key, surveyTitle, surveyTotal, question }) => (
+                <div key={key} className={cardClass + ' p-4 sm:p-5'}>
+                  <h4 className="text-sm font-semibold text-slate-800 mb-1">{question.title}</h4>
+                  <p className="text-xs text-slate-500 mb-3">{surveyTitle}（{surveyTotal}件回答）</p>
+                  {question.description && (
+                    <p className="text-xs text-slate-600 mb-3">{question.description}</p>
+                  )}
+                  <div className="space-y-3">
+                    {question.distribution.map((item, dIdx) => {
+                      const colors = ['bg-sky-500', 'bg-teal-500', 'bg-emerald-500', 'bg-violet-500', 'bg-pink-500', 'bg-amber-500'];
+                      return (
+                        <div key={dIdx}>
+                          <div className="flex justify-between text-xs sm:text-sm mb-0.5">
+                            <span className="text-slate-700 truncate mr-2">{item.label}</span>
+                            <span className="text-slate-600 font-medium shrink-0">{item.count}名 ({item.pct}%)</span>
+                          </div>
+                          <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full ${colors[dIdx % colors.length]} rounded-full transition-all duration-500`}
+                              style={{ width: `${item.pct}%` }}
+                            />
+                          </div>
                         </div>
-                        <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full ${colors[dIdx % colors.length]} rounded-full transition-all duration-500`}
-                            style={{ width: `${item.pct}%` }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
