@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Organization } from '../types';
 import { generateRandomOrgId, generateRandomSlug } from '../utils/idGenerator';
 import { checkNameAvailability, checkSlugAvailability } from '../services/organizationService';
@@ -29,6 +29,7 @@ const OrgModal: React.FC<OrgModalProps> = ({ isOpen, onClose, onSave, org }) => 
 
   const [logoPreview, setLogoPreview] = useState<string>('');
   const [generatedId, setGeneratedId] = useState<string>('');
+  const promptTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (org) {
@@ -96,6 +97,33 @@ const OrgModal: React.FC<OrgModalProps> = ({ isOpen, onClose, onSave, org }) => 
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  // AI分析プロンプト用の変数定義
+  const promptVariables = [
+    { key: 'name', label: '法人名', color: 'bg-sky-100 text-sky-700 border-sky-200' },
+    { key: 'totalRespondents', label: '回答者数', color: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
+    { key: 'aggregationContext', label: '集計データ', color: 'bg-violet-100 text-violet-700 border-violet-200' },
+  ];
+
+  const insertVariable = (variableKey: string) => {
+    const textarea = promptTextareaRef.current;
+    if (!textarea) return;
+
+    const tag = `{{${variableKey}}}`;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const currentValue = formData.aiSystemPrompt;
+
+    const newValue = currentValue.slice(0, start) + tag + currentValue.slice(end);
+    setFormData(prev => ({ ...prev, aiSystemPrompt: newValue }));
+
+    // カーソルを挿入した変数の直後に移動
+    requestAnimationFrame(() => {
+      textarea.focus();
+      const newPos = start + tag.length;
+      textarea.setSelectionRange(newPos, newPos);
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -428,10 +456,38 @@ const OrgModal: React.FC<OrgModalProps> = ({ isOpen, onClose, onSave, org }) => 
 
                 {/* AI分析プロンプト */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    AI分析プロンプト
-                  </label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-slate-700">
+                      AI分析プロンプト
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, aiSystemPrompt: DEFAULT_AI_SYSTEM_PROMPT }))}
+                      className="text-xs text-sky-500 hover:text-sky-700"
+                    >
+                      デフォルトに戻す
+                    </button>
+                  </div>
+
+                  {/* 変数チップ */}
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    <span className="text-xs text-slate-500 leading-6 mr-1">変数を挿入:</span>
+                    {promptVariables.map((v) => (
+                      <button
+                        key={v.key}
+                        type="button"
+                        onClick={() => insertVariable(v.key)}
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border cursor-pointer hover:shadow-sm transition-shadow ${v.color}`}
+                      >
+                        <span className="opacity-60">{'{'}</span>
+                        {v.label}
+                        <span className="opacity-60">{'}'}</span>
+                      </button>
+                    ))}
+                  </div>
+
                   <textarea
+                    ref={promptTextareaRef}
                     name="aiSystemPrompt"
                     value={formData.aiSystemPrompt}
                     onChange={handleInputChange}
@@ -439,20 +495,9 @@ const OrgModal: React.FC<OrgModalProps> = ({ isOpen, onClose, onSave, org }) => 
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none font-mono text-xs resize-y"
                     placeholder="AI分析で使用するシステムプロンプトを入力"
                   />
-                  <div className="mt-1 flex items-start justify-between gap-2">
-                    <p className="text-xs text-slate-500">
-                      利用可能な変数: <code className="bg-slate-100 px-1 rounded">{'{{name}}'}</code>（法人名）、
-                      <code className="bg-slate-100 px-1 rounded">{'{{totalRespondents}}'}</code>（回答者数）、
-                      <code className="bg-slate-100 px-1 rounded">{'{{aggregationContext}}'}</code>（集計データ）
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, aiSystemPrompt: DEFAULT_AI_SYSTEM_PROMPT }))}
-                      className="text-xs text-sky-500 hover:text-sky-700 whitespace-nowrap flex-shrink-0"
-                    >
-                      デフォルトに戻す
-                    </button>
-                  </div>
+                  <p className="mt-1 text-xs text-slate-400">
+                    上のチップをクリックするとカーソル位置に変数が挿入されます
+                  </p>
                 </div>
 
                 {/* アカウントIDとパスワード */}
